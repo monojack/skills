@@ -8,6 +8,7 @@ Shared Codex skills that can be installed from GitHub.
 - `gh-issue-pr-loop`: run an end-to-end GitHub issue implementation workflow that selects an actionable issue, fixes it, opens a pull request, requests Copilot review, and monitors review feedback.
 - `gh-pr-loop`: run the review-monitoring and feedback-addressing loop for an existing pull request when the PR number is known; an issue number may be provided but is not required.
 - `codebase-review`: perform a thorough whole-codebase review, consult relevant official framework documentation first, write findings under `reviews/`, and open GitHub issues for each actionable finding.
+- `incremental-development`: deliver software changes as small, focused, review-gated, and bisectable commits with explicit approval before each commit.
 
 ## Install
 
