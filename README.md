@@ -5,10 +5,10 @@ Shared Codex skills that can be installed from GitHub.
 ## Skills
 
 - `gh-workflow-loop`: run a unified GitHub workflow from either starting point: implement an issue through a ready PR, or handle an existing PR's review feedback with pre-push rechecks and heartbeat monitoring.
-- `gh-issue-pr-loop`: run an end-to-end GitHub issue implementation workflow that selects an actionable issue, fixes it, opens a pull request, requests Copilot review, and monitors review feedback.
-- `gh-pr-loop`: run the review-monitoring and feedback-addressing loop for an existing pull request when the PR number is known; an issue number may be provided but is not required.
 - `codebase-review`: perform a thorough whole-codebase review, consult relevant official framework documentation first, write findings under `reviews/`, and open GitHub issues for each actionable finding.
 - `incremental-development`: deliver software changes as small, focused, review-gated, and bisectable commits with explicit approval before each commit.
+
+The former `gh-issue-pr-loop` and `gh-pr-loop` skills were consolidated into `gh-workflow-loop`. Use `gh-workflow-loop` for both issue-to-PR implementation and existing-PR review workflows.
 
 ## Install
 
@@ -27,7 +27,7 @@ python ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github
   --url https://github.com/YOUR_ORG_OR_USER/codex-skills/tree/main/skills/gh-workflow-loop
 ```
 
-Replace the path with another skill directory, such as `skills/gh-pr-loop`, `skills/gh-issue-pr-loop`, or `skills/codebase-review`, to install a different skill from this repository.
+Replace the path with another skill directory, such as `skills/codebase-review`, to install a different skill from this repository.
 
 ## Symlink For Local Development
 
