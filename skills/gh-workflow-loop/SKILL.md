@@ -114,8 +114,8 @@ On each monitor check or pre-push review gate:
 
 1. Fetch pull request reviews, review threads, PR comments, and relevant timeline comments with the GitHub connector.
 2. Classify each new or still-open item as actionable, non-actionable, duplicate, already addressed, or blocked.
-3. Treat comments as actionable only when they request a concrete code, test, behavior, security, performance, accessibility, documentation, or release-note change.
-4. Treat praise, status updates, vague preferences, duplicate Copilot repeats, already-addressed suggestions, and questions answered by the PR body as non-actionable.
+3. Treat a finding as actionable only when all of the following are true: it requests a concrete code, test, behavior, security, performance, accessibility, documentation, or release-note change; the requested change is reasonable for the PR's scope and project requirements; and the finding is technically correct after inspecting the relevant code, tests, documentation, and PR or issue context.
+4. Treat praise, status updates, vague preferences, duplicate Copilot repeats, already-addressed suggestions, questions answered by the PR body, and findings based on missing or outdated context, incorrect assumptions, or a misunderstanding of the implementation as non-actionable. Do not change code merely to satisfy a false or unreasonable finding; explain why it does not apply when a response would help the reviewer.
 5. If Copilot says the PR is fine, leaves no comments, or only leaves non-actionable comments, count the check as clean.
 6. If 3 checks complete in the current monitoring cycle with no actionable comments, stop/delete the current heartbeat and report monitoring complete for that cycle.
 7. If actionable comments exist during monitoring, stop/delete the current heartbeat before editing code and address them in the active workspace.
@@ -123,7 +123,7 @@ On each monitor check or pre-push review gate:
 
 ## Addressing Review Feedback
 
-When actionable feedback exists:
+When feedback passes the actionable, reasonable, and technically-correct gate above:
 
 1. Summarize the actionable findings and the files likely affected.
 2. Ensure the existing PR branch is checked out and up to date enough to apply the fixes without overwriting unrelated user changes.
