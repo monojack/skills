@@ -1,6 +1,6 @@
 ---
 name: gh-workflow-loop
-description: "Use when Codex should run a GitHub workflow from either starting point: an issue-to-PR implementation loop or an existing-PR review loop. In issue mode, select or verify an actionable issue, assign it, implement the complete fix/change/feature, validate, commit using repository conventions with Conventional Commit fallback, push, open a ready PR, request review, and monitor feedback. In PR mode, inspect existing reviews and unaddressed comments before pushing, address actionable feedback, recheck for new feedback before every push, then push, request re-review, and start heartbeat monitoring."
+description: "Use when running a GitHub workflow from either starting point: an issue-to-PR implementation loop or an existing-PR review loop. In issue mode, select or verify an actionable issue, assign it, implement the complete fix/change/feature, validate, commit using repository conventions with Conventional Commit fallback, push, open a ready PR, request review, and monitor feedback. In PR mode, inspect existing reviews and unaddressed comments before pushing, address actionable feedback, recheck for new feedback before every push, then push, request re-review, and start heartbeat monitoring."
 ---
 
 # GitHub Workflow Loop
@@ -40,7 +40,7 @@ For commits and PR titles, check repository instructions such as CONTRIBUTING fi
 6. Assign the issue to the authenticated GitHub user before branch creation, code inspection, or implementation. If it is already assigned to the authenticated user, treat it as claimed. Prefer the GitHub connector for assignment; use `gh` only when connector support is missing.
 7. If assignment fails, the issue becomes assigned to someone else, or an open PR appears for the issue before implementation starts, stop and select a different eligible issue or ask the user how to proceed.
 8. Sync the base branch according to repository instructions. If the repository requires starting from `main`, switch to `main`, run a fast-forward-only pull, and stop on any pull failure instead of creating a branch from stale state.
-9. Create a branch using the repository's branch convention; default to `codex/issue-<number>-<slug>`.
+9. Create a branch using the repository's branch convention. If none exists, resolve the authenticated GitHub login through the connector or `gh api user --jq .login`, then use `<login>/issue-<number>-<slug>`. If the login cannot be determined, ask before creating the branch.
 10. Inspect the relevant code before editing. For framework-specific work, read relevant local or official docs when repository instructions or the change risk call for it.
 11. Implement the root-cause fix/change/feature. Do not add workarounds that hide product, test, cache, or environment problems.
 12. Add or update tests when the change affects behavior, fixes a bug, or prevents regression.
@@ -87,7 +87,7 @@ Do not use `@github-copilot` or a PR comment mention as a substitute for Copilot
 
 ## Heartbeat Rules
 
-Use a Codex heartbeat automation attached to the current thread, not a detached cron job. Before creating a heartbeat for a cycle, stop/delete any existing matching heartbeat for the same PR. Do not update an existing heartbeat in place for a new cycle; each monitoring cycle must have a newly created heartbeat with a fresh 3-check budget.
+Use a thread-attached heartbeat or the active agent's equivalent recurring monitoring mechanism, not a detached cron job. In the rules below, "heartbeat" means that supported thread-attached mechanism. Before creating a heartbeat for a cycle, stop/delete any existing matching heartbeat for the same PR. Do not update an existing heartbeat in place for a new cycle; each monitoring cycle must have a newly created heartbeat with a fresh 3-check budget.
 
 The heartbeat must run every 5 minutes and be capped at 3 monitor checks for the current monitoring cycle. Count only checks from the current monitoring cycle toward the cap; never count checks from prior cycles.
 

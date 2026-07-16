@@ -1,6 +1,6 @@
-# Codex Skills
+# Agent Skills
 
-Shared Codex skills that can be installed from GitHub.
+Shared agent skills installable from GitHub with [`npx skills`](https://skills.sh/docs/cli).
 
 ## Skills
 
@@ -12,50 +12,41 @@ The former `gh-issue-pr-loop` and `gh-pr-loop` skills were consolidated into `gh
 
 ## Install
 
-Install a skill on another machine with Codex's built-in skill installer.
+List the skills available in this repository:
 
 ```sh
-python ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo YOUR_ORG_OR_USER/codex-skills \
-  --path skills/gh-workflow-loop
+npx skills add monojack/skills --list
 ```
 
-Or install from a GitHub URL:
+Install interactively and choose the skills and agents to configure:
 
 ```sh
-python ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --url https://github.com/YOUR_ORG_OR_USER/codex-skills/tree/main/skills/gh-workflow-loop
+npx skills add monojack/skills
 ```
 
-Replace the path with another skill directory, such as `skills/codebase-review`, to install a different skill from this repository.
-
-## Symlink For Local Development
-
-To test skills from a local checkout without reinstalling after each edit, symlink a skill directory into Codex's user skills directory:
+Install one skill globally and choose the agents to configure:
 
 ```sh
-mkdir -p ~/.codex/skills
-ln -s "$(pwd)/skills/gh-workflow-loop" ~/.codex/skills/gh-workflow-loop
+npx skills add monojack/skills \
+  --skill gh-workflow-loop \
+  --global
 ```
 
-If the target path already exists, move or remove the old installed copy first so the symlink points directly at this checkout.
-
-To symlink every skill in this repository without overwriting existing installs:
+Install every skill globally and choose the agents to configure:
 
 ```sh
-mkdir -p ~/.codex/skills
-for skill in skills/*; do
-  name="$(basename "$skill")"
-  target="$HOME/.codex/skills/$name"
-
-  if [ -e "$target" ] || [ -L "$target" ]; then
-    echo "Skipping $name: $target already exists"
-  else
-    ln -s "$(pwd)/$skill" "$target"
-  fi
-done
+npx skills add monojack/skills \
+  --skill '*' \
+  --global
 ```
 
-Restart Codex after installing or changing skill symlinks.
+## Local Development
+
+Use the local checkout as the source while developing a skill:
+
+```sh
+npx skills add . --list
+npx skills add . --skill gh-workflow-loop
+```
 
 For a private repository, authenticate first with `gh auth login` or set `GH_TOKEN` / `GITHUB_TOKEN` on the target machine.

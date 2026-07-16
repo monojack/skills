@@ -1,6 +1,6 @@
 ---
 name: codebase-review
-description: "Use when Codex should perform a very thorough whole-codebase review: inspect architecture and implementation deeply, read relevant official framework documentation first, identify bugs plus nitpicky maintainability issues such as non-idiomatic, hacky, outdated, inconsistent, duplicated, dead, or unused code, write the review under reviews/, and open GitHub issues for every actionable finding."
+description: "Use for a very thorough whole-codebase review: inspect architecture and implementation deeply, read relevant official framework documentation first, identify bugs plus nitpicky maintainability issues such as non-idiomatic, hacky, outdated, inconsistent, duplicated, dead, or unused code, write the review under reviews/, and open GitHub issues for every actionable finding."
 ---
 
 # Codebase Review
