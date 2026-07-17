@@ -9,12 +9,12 @@ Work collaboratively in the smallest meaningful units. Keep every unit independe
 
 ## Apply the gates
 
-Treat review and commit approval as separate from general permission to work.
+Treat approval of a reviewed unit as permission to commit that unit and then start the next planned unit. Keep that approval distinct from general permission to work.
 
 - Never create a commit before presenting the completed unit and receiving explicit approval to commit it.
 - Do not treat approval of a plan, permission to edit, or a request to continue as approval to commit.
-- After an approved commit, pause before starting the next unit unless the user explicitly requested uninterrupted execution.
-- Even during uninterrupted execution, stop for review and explicit commit approval before every commit.
+- After an approved commit, start the next planned unit unless the user explicitly asks to wait or pause.
+- Stop for review and explicit commit approval before every commit, including when advancing automatically between units.
 - Never amend a commit unless the user explicitly requests it.
 - Never force-push unless the user explicitly requests it. Prefer `--force-with-lease` when force-pushing is authorized.
 - Do not push unless the user requested or otherwise authorized pushing.
@@ -30,7 +30,7 @@ Treat review and commit approval as separate from general permission to work.
 7. Present the unit for review and stop. Do not stage or commit it yet unless repository policy requires pre-review staging.
 8. Apply requested corrections to the same unit, rerun validation, and present the updated result again.
 9. After explicit commit approval, stage only the approved files or hunks, inspect the staged diff, and create one meaningful commit.
-10. Report the commit hash and subject. Then pause before the next unit unless uninterrupted execution was explicitly requested.
+10. Report the commit hash and subject. Then start the next planned unit unless the user explicitly asked to wait or pause.
 
 Do not fragment work into changes that have no useful behavior or review value on their own. A trivial task may be one unit.
 
@@ -77,4 +77,4 @@ For the final unit, also run the full relevant test suite and verify the complet
 - Do not include newly changed or unrelated files without presenting them for review first.
 - If the staged diff differs materially from the approved diff, stop and request another review.
 
-After the commit succeeds, report its hash and subject. Start the next planned unit only when the applicable continuation gate allows it.
+After the commit succeeds, report its hash and subject, then start the next planned unit. Wait only when the user explicitly asks to pause before continuing.

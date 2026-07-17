@@ -1,4 +1,4 @@
 interface:
   display_name: "Incremental Development"
   short_description: "Small, review-gated, bisectable commits"
-  default_prompt: "Use $incremental-development to deliver this change in small, review-gated units with explicit approval before each commit."
+  default_prompt: "Use $incremental-development to deliver this change in small, review-gated units with explicit approval before each commit; after approval, commit the unit and start the next one unless I ask you to wait."
