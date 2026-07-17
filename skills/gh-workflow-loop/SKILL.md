@@ -1,13 +1,13 @@
 ---
 name: gh-workflow-loop
-description: "Use when running a GitHub workflow from either starting point: an issue-to-PR implementation loop or an existing-PR review loop. In issue mode, select or verify an actionable issue, assign it, implement the complete fix/change/feature, validate, commit using repository conventions with Conventional Commit fallback, push, open a ready PR, request review, and monitor feedback. In PR mode, inspect existing reviews and unaddressed comments before pushing, address actionable feedback, recheck for new feedback before every push, then push, request re-review, and start heartbeat monitoring."
+description: "Use when running a GitHub workflow from either starting point: an issue-to-PR implementation loop or an existing-PR review loop. In issue mode, select or verify an actionable issue, assign it, implement the complete fix/change/feature, validate, commit using repository conventions with Conventional Commit fallback, push, open a ready PR, request review, and monitor feedback through a review-readiness gate. In PR mode, inspect existing reviews and unaddressed comments before pushing, address actionable feedback, recheck for new feedback before every push, then push, request re-review, and monitor until the gate passes."
 ---
 
 # GitHub Workflow Loop
 
 ## Overview
 
-Use this skill for GitHub work that should continue through implementation, review requests, and capped PR monitoring. It has two starting points:
+Use this skill for GitHub work that should continue through implementation, review requests, and gated PR monitoring. It has two starting points:
 
 - **Issue-to-PR mode**: the user asks to pick up a GitHub issue, fix an issue number, or implement an issue into a pull request.
 - **Existing-PR mode**: the user provides a pull request number and asks to handle reviews, comments, re-review, or monitoring.
@@ -68,7 +68,7 @@ For commits and PR titles, check repository instructions such as CONTRIBUTING fi
 Use this gate before every push that contains review-feedback fixes in Existing-PR mode or in later review cycles for any PR:
 
 1. After local fixes are validated and the commit or commits are prepared, but before `git push`, fetch the latest PR reviews, review threads, PR comments, timeline comments, and current head SHA.
-2. Classify any new or still-unaddressed items with the Monitor Check Logic. Do not count this pre-push gate toward any heartbeat cycle's 3-check cap.
+2. Classify any new or still-unaddressed items with the Monitor Check Logic. Do not count this pre-push gate toward the active monitoring cycle's minimum monitor-check count.
 3. If new actionable feedback exists, do not push. Preserve the thread or comment IDs, implement the additional feedback locally, rerun relevant validation, update the prepared commit or create an additional focused commit according to repository convention, and repeat this gate.
 4. If the recheck is clean, push the prepared batch to the same PR branch.
 5. After pushing, request re-review from the initial actionable reviewers. Request Copilot re-review when Copilot provided actionable comments or was part of the review loop, and verify the request with the Copilot Review rules.
@@ -87,9 +87,9 @@ Do not use `@github-copilot` or a PR comment mention as a substitute for Copilot
 
 ## Heartbeat Rules
 
-Use a thread-attached heartbeat or the active agent's equivalent recurring monitoring mechanism, not a detached cron job. In the rules below, "heartbeat" means that supported thread-attached mechanism. Before creating a heartbeat for a cycle, stop/delete any existing matching heartbeat for the same PR. Do not update an existing heartbeat in place for a new cycle; each monitoring cycle must have a newly created heartbeat with a fresh 3-check budget.
+Use a thread-attached heartbeat or the active agent's equivalent recurring monitoring mechanism, not a detached cron job. In the rules below, "heartbeat" means that supported thread-attached mechanism. Before creating a heartbeat for a cycle, stop/delete any existing matching heartbeat for the same PR. Do not update an existing heartbeat in place for a new cycle; each monitoring cycle must have a newly created heartbeat and a fresh monitor-check count for the current head SHA.
 
-The heartbeat must run every 5 minutes and be capped at 3 monitor checks for the current monitoring cycle. Count only checks from the current monitoring cycle toward the cap; never count checks from prior cycles.
+Run the heartbeat every 5 minutes with no maximum number of monitor checks. Require at least 3 completed monitor checks in the current monitoring cycle, then continue checking until the Monitoring Completion Gate passes. Count only checks performed against the current head SHA. After the agent's own push, create a new monitoring cycle for the verified pushed SHA and reset the count. Apply the External Push Restart rules to every other head-SHA change.
 
 The heartbeat prompt must include:
 
@@ -97,29 +97,52 @@ The heartbeat prompt must include:
 - issue number and URL when provided, selected, or discovered; otherwise state that no issue context is available
 - PR number and URL
 - PR branch name and current head SHA
+- baseline head SHA for the current cycle and any SHA explicitly recorded after the agent's own successful push
 - initial requested reviewers and review status, including whether Copilot review is verified, already complete, missing, or attempted-but-unverified
 - current monitoring cycle number
-- instruction that the 3-check cap applies only to this cycle and resets when a later cycle creates a new heartbeat
-- instruction to inspect reviews, review threads, and PR timeline comments via the GitHub connector
+- completed monitor-check count for the current cycle and instruction that 3 checks is a minimum, not a cap
+- instruction to inspect reviews, pending review requests, review threads, PR timeline comments, checks, review decision, and approval requirements via the GitHub connector
 - instruction to request and verify Copilot review if it is missing and no user or repository instruction opts out
 - instruction to track review thread IDs for actionable comments so addressed threads can be replied to and resolved
 - instruction to count completed checks for the current cycle from thread history
-- instruction to stop/delete the heartbeat when monitoring is complete or before making code changes
+- instruction to evaluate every completion-gate condition explicitly and continue monitoring when any condition is false, pending, or unknown
+- instruction to stop/delete the heartbeat only when the Monitoring Completion Gate passes, the PR is merged/closed, a blocker requires user input, or before making code changes
 
 After the heartbeat is established, perform an immediate monitor check in the active thread unless the user explicitly asked only to schedule monitoring. Count this immediate post-heartbeat check as check 1 for the current cycle.
+
+## External Push Restart
+
+Check for an external push whenever reading PR state, including during every monitor check and pre-push review gate:
+
+1. Compare the PR's current head SHA with the monitoring cycle's baseline SHA before counting the check or trusting cached review, comment, check, or approval state.
+2. Treat a changed SHA as agent-originated only when it exactly matches the SHA recorded immediately after the agent's own successful push. Do not infer ownership from commit author or actor metadata alone. Treat any other changed SHA, including one with unknown provenance, as an external push from the user or another source.
+3. When an external push is detected, stop/delete the active heartbeat, invalidate the prior cycle's check count and all cached gate evidence, increment the cycle number, and set the new head SHA as the baseline. Never carry completed checks, approvals, review decisions, or resolved-comment observations across the push.
+4. Fetch the complete PR review, comment, check, approval, and reviewer-request state again for the new SHA. Refresh the local PR branch before editing or pushing, and do not overwrite or force-push over the external changes.
+5. If no local changes are in progress, create a fresh heartbeat and perform an immediate full monitor check against the new SHA as check 1. If local changes are in progress, keep them unpushed, reconcile them safely with the new head, rerun validation and the Pre-Push Review Gate, and defer heartbeat creation until the branch is safe to monitor. In either case, never reuse the invalidated cycle count.
+
+## Monitoring Completion Gate
+
+Declare monitoring complete only when all of these conditions are true for the same current head SHA:
+
+1. At least 3 monitor checks (heartbeat polling cycles) have completed in the current monitoring cycle.
+2. No pending reviews exist. Confirm that requested-user and requested-team reviewer queues are empty and that no explicitly requested or expected review remains outstanding for the current head.
+3. Every configured check or merge requirement that requires one or more PR approvals is green or satisfied. If no approval requirement exists, treat this condition as satisfied. Treat pending, neutral, failing, unavailable, and unknown approval states as not green; read the approval requirement and review decision explicitly instead of inferring success from the absence of a visible failure.
+4. No unresolved review comments exist. Confirm that the unresolved review-thread count is zero, regardless of whether prior comments were classified as actionable or non-actionable, and that any actionable PR timeline comment has been addressed.
+
+If fewer than 3 checks have completed, keep monitoring even when the other conditions are satisfied. After the third check, keep monitoring without a fixed limit until every condition passes. Do not resolve or dismiss a comment merely to make the gate pass. If a non-actionable thread needs closure, reply with the technical reason when useful and resolve it only when the discussion is clearly concluded and repository policy permits it. If gate data cannot be read, the gate does not pass; retry on later checks or report a blocker when access or user input is required.
 
 ## Monitor Check Logic
 
 On each monitor check or pre-push review gate:
 
-1. Fetch pull request reviews, review threads, PR comments, and relevant timeline comments with the GitHub connector.
+1. Fetch the current head SHA and apply the External Push Restart rules before counting the check. Then fetch pull request reviews, requested reviewers and teams, review threads with resolution state, PR comments, relevant timeline comments, check results, review decision, and approval requirements with the GitHub connector.
 2. Classify each new or still-open item as actionable, non-actionable, duplicate, already addressed, or blocked.
 3. Treat a finding as actionable only when all of the following are true: it requests a concrete code, test, behavior, security, performance, accessibility, documentation, or release-note change; the requested change is reasonable for the PR's scope and project requirements; and the finding is technically correct after inspecting the relevant code, tests, documentation, and PR or issue context.
 4. Treat praise, status updates, vague preferences, duplicate Copilot repeats, already-addressed suggestions, questions answered by the PR body, and findings based on missing or outdated context, incorrect assumptions, or a misunderstanding of the implementation as non-actionable. Do not change code merely to satisfy a false or unreasonable finding; explain why it does not apply when a response would help the reviewer.
 5. If Copilot says the PR is fine, leaves no comments, or only leaves non-actionable comments, count the check as clean.
-6. If 3 checks complete in the current monitoring cycle with no actionable comments, stop/delete the current heartbeat and report monitoring complete for that cycle.
-7. If actionable comments exist during monitoring, stop/delete the current heartbeat before editing code and address them in the active workspace.
-8. Preserve the review thread or comment identifiers for every actionable item so follow-up replies and thread resolution target the correct discussion.
+6. If actionable comments exist during monitoring, stop/delete the current heartbeat before editing code and address them in the active workspace.
+7. Preserve the review thread or comment identifiers for every actionable item so follow-up replies and thread resolution target the correct discussion.
+8. After recording the completed check, evaluate the Monitoring Completion Gate. Stop/delete the heartbeat and report monitoring complete only when the gate passes; otherwise leave monitoring active.
 
 ## Addressing Review Feedback
 
@@ -137,7 +160,7 @@ When feedback passes the actionable, reasonable, and technically-correct gate ab
 10. Do not resolve blocked, disputed, duplicate, or intentionally-unapplied comments unless the reviewer explicitly accepts the explanation or the thread is otherwise clearly resolved.
 11. Recreate monitoring with the Heartbeat Rules after the push and re-review request. If no heartbeat has been created yet because Existing-PR mode started with pre-existing actionable feedback, create monitoring cycle 1 after that feedback is pushed and re-review is requested; otherwise increment the prior cycle number.
 
-Repeat the monitor/address/re-review cycle until Copilot indicates the PR is fine, no actionable comments remain after the capped checks, the PR is merged/closed, or a blocker requires user input.
+Repeat the monitor/address/re-review cycle until the Monitoring Completion Gate passes, the PR is merged/closed, or a blocker requires user input. Copilot indicating that the PR is fine is evidence for the gate, not a substitute for the remaining gate conditions.
 
 ## Completion Report
 
@@ -149,4 +172,4 @@ When the workflow completes, report:
 - PR URL, when one exists
 - reviewers requested, separating verified reviewer requests from attempts that could not be verified
 - validation commands and outcomes
-- monitoring result, including whether it ended cleanly, addressed review feedback, replied to addressed comments, resolved review threads, recreated the heartbeat for a new cycle, or stopped on a blocker
+- monitoring result, including the current head SHA, completed check count, pending-review state, approval-gate state, unresolved-comment count, any external-push restarts, and whether monitoring passed the gate, addressed review feedback, replied to addressed comments, resolved review threads, recreated the heartbeat for a new cycle, or stopped on a blocker
