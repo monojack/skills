@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pair with Claude"
+  short_description: "Shared-environment pairing with Claude"
+  default_prompt: "Use $pair-with-claude to work with Claude as a second teammate in this project environment, challenge the current thinking, and help reach a stronger verified result."
