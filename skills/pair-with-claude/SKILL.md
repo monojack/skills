@@ -1,13 +1,15 @@
 ---
 name: pair-with-claude
-description: "Pair with Claude through the Claude Code CLI as a teammate sharing the current project environment for code and design reviews, second opinions, research, debugging, architecture debates, and technical spikes. Use when the user asks to ask, consult, pair, debate, or review with Claude, or when a consequential, ambiguous technical decision with safely shareable context would materially benefit from an independent extra pair of eyes and the Claude CLI is available."
+description: "Pair with Claude through the Claude Code CLI as a teammate sharing the current project environment, or delegate bounded work to Claude as an isolated parallel worker. Use when the user asks to ask, consult, pair, debate, review, or delegate to Claude; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Claude CLI."
 ---
 
 # Pair with Claude
 
-Treat Claude as a second teammate, not an authority. Give it the same relevant project visibility and safe development capabilities as Codex while keeping one clear coordinator. Ask it to inspect evidence, challenge assumptions, and disagree candidly. Keep ownership of the final decision and verification.
+Treat Claude as a second teammate, not an authority. Give it the same relevant project visibility and safe development capabilities as Codex while keeping one clear coordinator. Ask it to inspect evidence, challenge assumptions, and disagree candidly. Keep ownership of the final decision, integration, and verification.
 
 Use a driver/navigator contract in the active worktree: Codex coordinates and is the default writer, while both agents inspect the live project. Let Claude execute commands directly only behind a verified OS-enforced sandbox; otherwise Codex runs Claude's requested diagnostics, tests, benchmarks, and experiments in the same environment and returns sanitized results. Let Claude write only in an isolated worktree or scratch area unless the user explicitly authorizes shared-worktree edits. Freeze relevant files during each Claude turn; apply Codex changes between turns, then report the delta and require rereads. Never let both agents write the same checkout concurrently.
+
+Use a delegated-worker contract when bounded independent work can run in parallel. Give Claude exclusive write ownership of a task-local scratch directory or explicit worktree, let it accept edits there, supervise requests for greater authority, and keep Codex as the sole integrator. Do not delegate merely to appear parallel; keep tightly coupled or serial work in the pairing lane.
 
 Do not consult ritualistically for trivial, deterministic work. Use the extra model where an independent perspective can change the outcome.
 
@@ -33,8 +35,8 @@ Use family aliases so the selection tracks current releases. Do not pin dated mo
 | Consultation | Model | Effort |
 | --- | --- | --- |
 | Focused review, opinion, or bounded research | `opus` | `high` |
-| Consequential or difficult review/research | `opus` | `xhigh` |
-| Hardest or longest-running analysis, important debate, architecture decision, root-cause investigation, or focused technical spike | `best` | `max` |
+| Consequential review/research or bounded implementation with clear acceptance criteria | `opus` | `xhigh` |
+| Hardest or longest-running analysis, important debate, architecture decision, root-cause investigation, or complex delegated technical spike | `best` | `max` |
 | Broad read-only review or research that materially benefits from parallel independent exploration | `best` | `ultracode` |
 
 Use `best` for the most complex work. It currently selects Fable 5 when the account can access it and otherwise selects the latest Opus; keep the alias so future most-capable models can replace Fable without pinning the skill. Add `--fallback-model opus` when an overload fallback is preferable to no pairing response.
@@ -59,6 +61,8 @@ Give Claude real access to the development environment by default: launch it in 
 - Keep the relevant active-worktree files stable while Claude is inspecting them. Make Codex edits only between turns and include every change in the next-turn delta.
 - Redact secrets and unrelated private data from Codex-collected command output, logs, diffs, and JSON before sending them into the Claude conversation. Output from a Claude-executed command reaches Claude before Codex can redact it, so broker any potentially sensitive command through Codex instead.
 
+`--safe-mode` disables ordinary user and project customizations, but admin-managed policy still applies. Before any write-capable Claude lane, inspect the effective managed settings and confirm that every remaining hook or policy-triggered customization is absent or confined to the authorized worker root, approved temporary paths, and allowed network effects. If that policy cannot be inspected or its side effects cannot be confined, do not grant host write access: use read-only pairing with Codex-brokered changes, or an OS-isolated environment that contains the effects.
+
 ### Pair in the active worktree by default
 
 Let both teammates inspect the same live files. Keep Codex as the only source-code writer and the default command broker in this checkout.
@@ -76,7 +80,7 @@ Expose `Bash` directly only when all of these conditions hold:
 
 If any condition cannot be established, omit `Bash` and broker commands through Codex. `dontAsk`, `--allowedTools`, `Read(...)` denies, and narrow command patterns are permission guardrails, not filesystem containment: built-in read-only shell commands can auto-run, and arbitrary subprocesses can bypass file-tool rules. Even behind the strict sandbox, use only reviewed command families, set a timeout, account for ignored artifacts, and reconcile `git status` after each turn.
 
-### Give Claude an isolated editable spike
+### Give Claude a foreground isolated editable spike
 
 When a technical spike benefits from Claude implementing an experiment, have Codex create or select a clean isolated worktree or scratch directory based on a recorded ref. Confirm that it contains no user-owned changes, designate Claude as its sole writer for the turn, and launch Claude from that directory with:
 
@@ -85,7 +89,78 @@ When a technical spike benefits from Claude implementing an experiment, have Cod
 - `--safe-mode`, `--permission-mode dontAsk`, secret-path denies, and no `Workflow`, mutation-capable MCP, or external messaging tools. Omit safe mode only after auditing every applicable customization;
 - explicit edit denies for `.git`, shared VCS metadata, `AGENTS.md`, `CLAUDE.md`, `.claude/**`, hooks, and validation entrypoints unless an exact protected surface is itself an authorized target of the spike.
 
-After Claude's edit turn, stop its write access before executing anything. Inventory tracked and untracked changes, inspect Claude's complete diff and protected metadata first, and identify whether it changed any test runner, build script, hook, dependency manifest, configuration, generated executable, or validation entrypoint. Only then have Codex run reviewed validation under its normal command controls or an appropriate sandbox. If direct execution during Claude's turn is materially necessary, add `Bash` only with the strict OS sandbox above, changing its write boundary to the isolated root and session temp directory while denying the main checkout and the resolved shared Git directory. Treat worktree isolation as collision isolation, not a security sandbox. Keep production and destructive operations prohibited. Integrate only the useful parts; never merge, commit, copy, reset, clean, or delete automatically. If the user explicitly authorizes Claude to edit the active checkout, serialize writing turns and recheck the worktree before and after each handoff.
+After Claude's edit turn, stop its write access before executing anything. Inventory tracked and untracked changes, inspect Claude's complete diff and protected metadata first, and identify whether it changed any test runner, build script, hook, dependency manifest, configuration, generated executable, or validation entrypoint. Only then have Codex run reviewed validation under its normal command controls or an appropriate sandbox. If direct execution during Claude's turn is materially necessary, add `Bash` only with the strict OS sandbox above, changing its write boundary to the isolated root and session temp directory while denying the main checkout and the resolved shared Git directory. Treat worktree isolation as collision isolation, not a security sandbox. Keep production and destructive operations prohibited. Claude must not stage, commit, merge, push, open a pull request, or clean up the worker root. Codex may selectively integrate reviewed output and remains responsible for commits and cleanup. If the user explicitly authorizes Claude to edit the active checkout, serialize writing turns and recheck the worktree before and after each handoff.
+
+## Delegate a bounded worker
+
+Delegate only when Claude can own a well-defined result while Codex makes useful progress elsewhere. Record a delegation ID, outcome and acceptance criteria, base commit, writable root, allowed and forbidden paths, applicable project instructions, expected validation, service namespace, time or retry bound, and stop conditions. State that Claude must ask before expanding scope and must report changed files, commands, results, failures, and unresolved questions.
+
+Choose the isolation boundary before launch:
+
+- Use a task-owned scratch directory for prototypes, analysis, or generated artifacts that do not need repository history. Copy in only reviewed inputs and review every artifact copied back.
+- Use an explicit clean Git worktree for tracked changes, cross-directory work, code generation, dependency changes, or tests that may write files. Base it on a recorded commit; prefer a detached worktree unless repository conventions require a worker branch. A worktree does not include dirty or untracked active-checkout state, so transfer a reviewed patch and manifest only when the task genuinely needs that state. Never silently stash, commit, or omit user work.
+- Use the active checkout only when required state cannot be isolated. Acquire an exclusive writer lease: pause Codex edits, formatters, generators, build commands, and every other writer until Claude exits and review completes. Never use this lane for parallel writing.
+
+Give each parallel worker unique ports, temporary directories, cache locations, fixture IDs, and database, index, bucket-prefix, or queue namespaces. Serialize migrations and non-idempotent integration tests. Treat the worktree as collision isolation, not a security boundary: Git metadata, credentials, hooks, caches, services, and host resources may still be shared.
+
+### Launch an editable worker in the background
+
+Prefer Claude's native background session on a supported CLI. Launch it from the task-owned scratch directory or the explicit worktree; starting inside an existing linked worktree prevents Claude from choosing a different base. `--bg` is incompatible with `-p`, so monitor it through agent view rather than expecting a JSON result from the launch.
+
+Use `acceptEdits` only inside that disposable, exclusively owned root and only after the managed-policy preflight above. Start without shell, web, workflow, MCP, or external-messaging tools:
+
+```text
+cwd: <canonical task-owned scratch directory or explicit worktree>
+argv:
+  claude
+  --bg
+  --name
+  <delegation-id>
+  --model
+  opus
+  --effort
+  xhigh
+  --permission-mode
+  acceptEdits
+  --safe-mode
+  --tools
+  Read,Glob,Grep,Edit,Write,AskUserQuestion
+  --disallowedTools
+  Bash
+  NotebookEdit
+  Workflow
+  WebSearch
+  WebFetch
+  mcp__*
+  Edit(.git)
+  Edit(.git/**)
+  Edit(**/AGENTS.md)
+  Edit(**/CLAUDE.md)
+  Edit(.claude/**)
+  --append-system-prompt
+  <common teammate contract plus delegated-worker contract below>
+  <complete task capsule as one argv item>
+```
+
+Construct this as an argument vector; never interpolate the task capsule into shell source. Include relevant project instructions in the capsule because safe mode disables ordinary project customizations; managed policy remains active and must have passed the preflight above. Remove a protected-path deny only when that exact file is an authorized target.
+
+Add `Bash` only when direct execution materially improves the task and every strict sandbox precondition above is satisfied, changing the sandbox write boundary to the worker root and session temp directory while denying the main checkout and resolved shared Git directory. `acceptEdits` also auto-approves common filesystem commands such as `mkdir`, `touch`, `rm`, `rmdir`, `mv`, `cp`, and `sed` within the writable root; isolation and pre-run cleanliness make that authority acceptable, not the permission label itself. Keep hard denies for background commands, Git staging/commit/merge/rebase/reset/clean/push, pull-request creation, deployment, publishing, credential inspection, and equivalent external mutations. Let other commands raise a permission prompt.
+
+### Supervise permissions and progress
+
+Capture the short background-session ID and record it with the delegation root and base commit. Poll `claude agents --json --all --cwd <launch-root>` without blocking Codex's own work; `--all` keeps completed sessions visible. Match the captured ID, use `claude logs <id>` for recent context, and interpret `working`, `blocked`, `done`, `failed`, and `stopped` explicitly rather than treating a missing row or silence as completion.
+
+When `waitingFor` reports a permission prompt or input request, inspect the exact operation and current diff. Attach with a PTY using `claude attach <id>` and approve only once when the operation is reversible, within the user's authorized task, confined to the worker boundary, and has understood writes and network effects. Prefer having Codex broker a sensitive command and return sanitized output. Never persist a broad permission rule. Ask the user before meaningful scope expansion, production or shared-service mutation, external communication, publishing, destructive action, or any operation requiring authority the user has not granted.
+
+Before approving a command that executes worker-modified code, pause the worker and review the invoked scripts, hooks, manifests, and configuration. Deny attempts to work around a refusal. Use `claude stop <id>` on cancellation or a breached boundary, then confirm child processes are quiescent.
+
+If the environment cannot attach to background sessions safely, do not pretend `-p` can pause for Codex: unapproved interactive actions fail closed. Either broker commands between resumed turns or use a separately audited `PreToolUse` defer wrapper that returns `tool_deferred`, surfaces the single pending call, records a one-use decision, and resumes the same session. Never rely on defer for batched tool calls.
+
+### Review and integrate the result
+
+Stop or finish the worker before review and revoke its writer lease. Compare the entire root with the recorded base: tracked, staged, unstaged, and untracked files; commits and refs; file modes, symlinks, binaries, generated artifacts, dependency files, hooks, validation entrypoints, and unexpected scope. Inspect the diff before running worker-modified code, then independently run proportionate tests in the isolated root.
+
+Keep Codex as the sole integrator. Apply only reviewed changes to the destination checkout, resolve conflicts there, re-review the integrated diff, and rerun relevant validation. Do not let Claude commit, push, open a pull request, merge, deploy, or publish unless the user explicitly requests that separate action. Remove the session and isolation root only after useful work is preserved, destination validation succeeds, no process owns the root, and no unreviewed changes remain; preserve failed or uncertain workers for inspection.
 
 ### Use independent-review and research variants deliberately
 
@@ -103,6 +178,7 @@ Append exactly one lane contract as well:
 
 - Active-worktree, context-only, and research lanes: `This is a read-only lane. Do not edit or create files anywhere.`
 - Isolated editable spike: `This is an isolated-edit lane. You may edit only inside <canonical isolated root>. Do not touch Codex's active checkout, shared Git metadata, protected instruction/configuration surfaces, or external systems.`
+- Delegated worker: `This is a delegated-worker lane. Accept edits only inside <canonical worker root>, stay within the task capsule, and stop for Codex approval before using greater authority. Do not touch Codex's checkout, stage or commit, change Git refs or configuration, push, open a pull request, publish, deploy, contact people, or mutate external systems.`
 
 Pass every dynamic project dossier and follow-up as data through a subprocess or command-runner stdin API. Construct the command as an argument vector; never interpolate task text into shell source or a double-quoted argument. Backticks, `$()`, variables, metacharacters, and heredoc parsing can execute before Claude sees them. If only a shell-text runner is available, write the dossier with a non-shell file API to a permission-restricted temporary file and redirect that file into a fixed command. Do not embed the dossier in a heredoc; if an unavoidable runner requires one, use a freshly generated delimiter verified absent from the complete payload and quote that delimiter to disable expansion. Keep stdin below the CLI limit.
 
@@ -148,6 +224,8 @@ stdin:
 
 ## Continue a real conversation
 
+Use this section for foreground `-p` sessions. Supervise background workers by their background-session ID using the worker protocol above.
+
 Capture `session_id` from the first JSON result. Associate it in task-local working state with the problem, canonical worktree, access lane, base ref, requested model and effort, actual model observed after every turn, and any fallback without writing it into the repository. Resume with the same structured argv/stdin method, replacing the initial positional instruction with `Review the follow-up dossier supplied on stdin.`, adding `--resume` and the exact session ID to argv, and sending a bounded redacted file/test delta plus the follow-up question through stdin.
 
 Run follow-ups from the same repository or worktree and repeat transient safety, effort, tool, and system-prompt flags. Do not blindly repeat the original model alias: a resumed session normally restores its current model, so omit `--model` to preserve an automatic Fable-to-Opus fallback; on providers that do not restore transcript models, pass the recorded actual model or appropriate family alias explicitly. Treat a deliberate model switch as a visible decision, not an accidental reset. Before resuming, provide a concise file/test delta and require Claude to reread changed artifacts. Start a new session when changing between context-only, active-worktree, and isolated-edit lanes; never resume an edit-enabled spike session against the active worktree. Do not use `--continue`; it can select the wrong conversation when several sessions exist. Do not run concurrent turns against one session. Use `--fork-session` only when a genuinely independent branch of the same discussion is useful.
@@ -178,5 +256,9 @@ Consult the current official references when CLI behavior has changed:
 - [Programmatic sessions](https://code.claude.com/docs/en/headless)
 - [CLI flags](https://code.claude.com/docs/en/cli-reference)
 - [Permissions](https://code.claude.com/docs/en/permissions)
+- [Permission modes](https://code.claude.com/docs/en/permission-modes)
 - [Bash sandboxing](https://code.claude.com/docs/en/sandboxing)
+- [Background agents](https://code.claude.com/docs/en/agent-view)
+- [Worktrees](https://code.claude.com/docs/en/worktrees)
+- [Hooks and deferred tool calls](https://code.claude.com/docs/en/hooks)
 - [Dynamic workflows](https://code.claude.com/docs/en/workflows)
