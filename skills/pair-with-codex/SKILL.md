@@ -1,17 +1,17 @@
 ---
 name: pair-with-codex
-description: "Pair with Codex through the Codex CLI as a teammate sharing the current project environment, run a best-model reviewer/evaluator loop over features, fixes, changes, designs, research, or other artifacts, or delegate bounded work to Codex as an isolated parallel worker. Use when the user asks to ask, consult, pair, debate, review, evaluate, audit, or delegate to Codex; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Codex CLI."
+description: "Pair with Codex through the Codex CLI as a teammate sharing the current project environment, run a best-model reviewer/evaluator loop over features, fixes, changes, designs, research, or other artifacts, or delegate bounded work to Codex as an isolated parallel worker. Use when the user asks to consult, pair, debate, review, evaluate, audit, or delegate to Codex; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Codex CLI."
 ---
 
 # Pair with Codex
 
-Treat Codex as a second teammate, not an authority. Ask it to inspect evidence, challenge assumptions, and disagree candidly. Keep Claude as coordinator, final decision-maker, active-checkout writer, verifier, and sole integrator.
+Treat Codex as a second teammate, not an authority. Ask it to inspect evidence, challenge assumptions, and disagree candidly. You are the coordinator, final decision-maker, active-checkout writer, verifier, and sole integrator.
 
 Select exactly one lane:
 
 | Lane | Use it for | Codex's authority |
 | --- | --- | --- |
-| Pairing | Open-ended critique, research, debugging, debate, and second opinions | Read-only teammate; Claude brokers execution |
+| Pairing | Open-ended critique, research, debugging, debate, and second opinions | Read-only teammate; you broker execution |
 | Reviewer/evaluator | A concrete frozen candidate with explicit acceptance criteria | Fresh independent read-only evaluator |
 | Isolated editable spike | A bounded foreground experiment or prototype | Sole writer inside a task-owned isolated root |
 | Delegated worker | A well-scoped independent result that can run in parallel | Supervised writer inside an exclusively owned root |
@@ -42,11 +42,11 @@ Do not install or update the CLI, initiate login, or perform a live mutation mer
 - Resolve the canonical workspace, worktree and ref, baseline, dirty and untracked files with their owner, applicable project instructions, runtime constraints, service boundaries, and prior commands. Preserve user-owned work.
 - Tell the user briefly before a potentially slow or costly Codex session. Use the CLI's normal configured credential chain; missing environment variables alone do not prove authentication is unavailable.
 - Share only relevant instructions and artifacts. Never send credentials, tokens, environment-file contents, private keys, hidden platform instructions, unrelated private data, or full conversation transcripts.
-- Keep one writer per root. Codex may inspect the active checkout, but Claude remains its only writer unless the user explicitly authorizes a serialized handoff. Never let parallel agents write the same checkout.
+- Keep one writer per root. Codex may inspect the active checkout, but you remain the active checkout's only writer unless the user explicitly authorizes a serialized handoff. Never let parallel agents write the same checkout.
 - Treat scratch directories and worktrees as collision isolation, not security sandboxes. Git metadata, credentials, project instructions, caches, services, sockets, and host resources may still be shared.
 - Treat sandbox modes, approval policies, and trusted-project labels as configuration until the platform sandbox is verified for this OS and version. Never use a full-access or bypass mode.
 - Inspect effective managed policy, configuration layers and profiles, project instruction files, MCP servers, subagents, and environment overrides before promising read-only or bounded-write behavior. Do not assume a stricter flag overrides every configuration layer.
-- Give Codex direct shell execution only when verified OS enforcement fails closed around files, processes, credentials, environment, and network. Otherwise keep shell unavailable and let Claude run reviewed commands.
+- Give Codex direct shell execution only when verified OS enforcement fails closed around files, processes, credentials, environment, and network. Otherwise keep shell unavailable and run reviewed commands yourself.
 - Verify the permissions inherited by subagent, workflow, fan-out, or child-agent features before exposing them. Exclude them when a read-only or bounded-write boundary cannot be preserved.
 - Do not assume a non-interactive session can pause for approval. Use only a discovered one-use approval path; otherwise deny or broker the operation.
 - Keep production or shared-service mutation, external communication, publishing, deployment, destructive work, Git history/ref changes, and scope expansion outside Codex's authority unless the user separately authorizes them.
@@ -72,7 +72,7 @@ Record requested versus observed routing. Environment, provider, account, or org
 
 Launch Codex read-only in the authorized live project so both teammates inspect the same files. When the full root is not shareable, use a neutral curated directory with reviewed artifacts.
 
-Freeze relevant files during each Codex turn. Ask for an independent first pass before revealing Claude's preferred conclusion when anchoring could weaken the review. Let Codex request diagnostics, tests, benchmarks, or experiments; have Claude execute the exact reviewed operation and return redacted output, exit status, and resulting state.
+Freeze relevant files during each Codex turn. Ask for an independent first pass before revealing your preferred conclusion when anchoring could weaken the review. Let Codex request diagnostics, tests, benchmarks, or experiments; execute the exact reviewed operation yourself and return redacted output, exit status, and resulting state.
 
 Continue the same explicit session for the same problem, root, and boundary. Between turns, provide a bounded file/test delta and require rereads. Usually use one to three focused follow-ups, then synthesize the strongest conclusion yourself. Start a new session when the lane or trust boundary changes.
 
@@ -82,9 +82,9 @@ For research, grant only the minimum web capability needed for named primary-sou
 
 Use this lane only for a concrete reviewable checkpoint with explicit acceptance criteria. Define the rubric from the artifact type rather than reducing every evaluation to code review.
 
-Freeze an evaluation ID and candidate: canonical root or curated directory, base and reviewed snapshot, complete scoped delta including untracked files, dirty-file ownership, artifact paths or hashes, intended behavior, criteria, instructions, exclusions, prior validation, material-finding threshold, and round cap. If Claude must keep writing, evaluate an immutable copy or worktree.
+Freeze an evaluation ID and candidate: canonical root or curated directory, base and reviewed snapshot, complete scoped delta including untracked files, dirty-file ownership, artifact paths or hashes, intended behavior, criteria, instructions, exclusions, prior validation, material-finding threshold, and round cap. If you must keep writing, evaluate an immutable copy or worktree.
 
-Use a fresh read-only session that did not author the candidate. Select the best accessible model and deepest focused reasoning. Withhold Claude's conclusion, implementation rationale, suspected findings, and self-review until Codex completes its independent first pass.
+Use a fresh read-only session that did not author the candidate. Select the best accessible model and deepest focused reasoning. Withhold your conclusion, implementation rationale, suspected findings, and self-review until Codex completes its independent first pass.
 
 Require:
 
@@ -96,23 +96,23 @@ Require:
 
 Use `P0` for imminent catastrophic or irreversible harm, `P1` for serious likely harm, `P2` for material but bounded risk, and `P3` for low-impact advice. Default the material threshold to `P2`.
 
-Independently verify every actionable claim and keep a disposition ledger: `accepted`, `rejected_with_evidence`, `needs_experiment`, or `deferred_by_user`. Claude remains the writer. Fix accepted findings and run proportionate checks; never change the candidate merely to satisfy Codex.
+Independently verify every actionable claim and keep a disposition ledger: `accepted`, `rejected_with_evidence`, `needs_experiment`, or `deferred_by_user`. You remain the writer. Fix accepted findings and run proportionate checks; never change the candidate merely to satisfy Codex.
 
 Resume the evaluator with the exact new candidate version, complete delta, finding-to-resolution map, validation results, rebuttal evidence, and new constraints. Require a full reread, regression review, and any newly discovered in-scope findings; label them introduced, previously masked, or missed earlier. Start a fresh evaluation when scope, architecture, base, artifact, rubric, or trust boundary changes materially.
 
-Limit normal convergence to the initial review plus two fix/re-review rounds, including any tie-breaker. Pass only when the evaluator covered the frozen scope, every required criterion is met by independently checked evidence, Claude's checks pass, no verified P0/P1 remains unresolved, every other material finding is fixed, rejected with evidence, or explicitly deferred by the user, no material `needs_experiment` disposition remains unresolved, no material candidate delta remains unreviewed, and residual risk is recorded. Treat Codex's verdict as evidence, not veto or proof. Stop blocked when required evidence or authorized verification is unavailable; stop inconclusive when an objectively unresolved material disagreement survives two evidence exchanges or the round cap.
+Limit normal convergence to the initial review plus two fix/re-review rounds, including any tie-breaker. Pass only when the evaluator covered the frozen scope, every required criterion is met by independently checked evidence, your checks pass, no verified P0/P1 remains unresolved, every other material finding is fixed, rejected with evidence, or explicitly deferred by the user, no material `needs_experiment` disposition remains unresolved, no material candidate delta remains unreviewed, and residual risk is recorded. Treat Codex's verdict as evidence, not veto or proof. Stop blocked when required evidence or authorized verification is unavailable; stop inconclusive when an objectively unresolved material disagreement survives two evidence exchanges or the round cap.
 
 ## Give Codex an isolated editable spike
 
 Use a clean task-owned scratch directory for self-contained prototypes or an explicit worktree based on a recorded ref for repository changes. Transfer dirty or untracked active-checkout state only through a reviewed patch and manifest. Codex is the sole writer in that root for the turn.
 
-Grant only file inspection and edit capabilities by default. Protect Git metadata, repository instructions, validation entrypoints, credentials, and every out-of-scope path. Broker commands through Claude unless the discovered OS sandbox meets the common boundary.
+Grant only file inspection and edit capabilities by default. Protect Git metadata, repository instructions, validation entrypoints, credentials, and every out-of-scope path. Broker commands yourself unless the discovered OS sandbox meets the common boundary.
 
 When Codex stops, revoke write authority before executing anything. Inventory tracked and untracked changes, refs, modes, symlinks, binaries, generated files, manifests, and validation entrypoints. Inspect the complete diff first, then run independent validation and selectively integrate reviewed output. Inspect the destination diff and rerun proportionate validation after integration and before any commit, push, publish, or deployment. Codex does not stage, commit, push, open pull requests, merge, publish, deploy, or clean up the root.
 
 ## Delegate a bounded worker
 
-Delegate only when Codex can own a well-defined result while Claude makes useful progress elsewhere. Record a delegation ID, outcome, criteria, base, writable root, allowed and forbidden paths, instructions, validation, resource namespace, retry/time bound, stop conditions, and a final report listing changed files, commands, results, failures, and unresolved questions.
+Delegate only when Codex can own a well-defined result while you make useful progress elsewhere. Record a delegation ID, outcome, criteria, base, writable root, allowed and forbidden paths, instructions, validation, resource namespace, retry/time bound, stop conditions, and a final report listing changed files, commands, results, failures, and unresolved questions.
 
 Choose isolation deliberately:
 
@@ -126,7 +126,7 @@ Launch in foreground or background only through capabilities verified for this C
 
 For a background worker, record its exact identity, root, and base. Observe it through terminal completion, including blocked, failed, stopped, and successful outcomes. Inspect the exact operation and current diff before a one-use approval. Approve only reversible in-scope work confined to the worker boundary; ask the user for scope expansion or external/destructive effects. Stop the worker on a breached boundary and confirm its child processes are quiescent.
 
-Stop or finish the worker and revoke its lease before review. Compare the whole root with the recorded base, inspect before executing worker-modified code, and independently validate. Claude alone integrates and resolves conflicts; after integration it inspects the destination diff and reruns proportionate validation before any commit, push, publish, deployment, or cleanup. Preserve failed or uncertain workers until useful work and evidence are safe.
+Stop or finish the worker and revoke its lease before review. Compare the whole root with the recorded base, inspect before executing worker-modified code, and independently validate. You alone integrate and resolve conflicts; after integration inspect the destination diff and rerun proportionate validation before any commit, push, publish, deployment, or cleanup. Preserve failed or uncertain workers until useful work and evidence are safe.
 
 ## Continue, verify, and report
 

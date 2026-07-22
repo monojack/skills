@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pair with Codex"
+  short_description: "Pair, evaluate, or delegate work with Codex"
+  default_prompt: "Use $pair-with-codex to consult Codex, run a bounded best-model evaluation loop over a concrete candidate, or delegate isolated work, then verify the result."

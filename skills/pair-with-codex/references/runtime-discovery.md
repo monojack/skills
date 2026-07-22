@@ -46,12 +46,12 @@ Do not run an empirical write, permission, containment, or escape test merely to
 ## Degrade safely
 
 - If read-only behavior cannot be established, use a reviewed context-only dossier in a contained environment or skip Codex.
-- If command execution cannot be contained, keep the shell unavailable and let Claude broker reviewed commands.
+- If command execution cannot be contained, keep the shell unavailable and broker reviewed commands yourself.
 - If writes cannot be isolated, serialize an explicitly authorized shared-checkout handoff; never delegate parallel writing there.
 - If a background worker cannot be supervised and stopped reliably, use a foreground or brokered workflow.
 - If one-use approval cannot be enforced, deny the operation or ask the user; never persist a broad rule or auto-approval policy as a shortcut.
 - If the requested best model or deepest effort cannot be observed, disclose the uncertainty or downgrade. Do not count a degraded evaluator as the requested final gate without user acceptance.
-- If web or network scoping cannot be verified, omit it and let Claude provide independently verified sources.
+- If web or network scoping cannot be verified, omit it and provide independently verified sources yourself.
 - If session continuation cannot preserve the boundary, start a new session with a bounded reviewed summary.
 - If the executable or authentication is unavailable, continue independently. Do not install, update, or initiate login without the user's request.
 
