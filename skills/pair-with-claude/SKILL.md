@@ -1,6 +1,6 @@
 ---
 name: pair-with-claude
-description: "Pair with Claude through the Claude Code CLI as a teammate sharing the current project environment, or delegate bounded work to Claude as an isolated parallel worker. Use when the user asks to ask, consult, pair, debate, review, or delegate to Claude; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Claude CLI."
+description: "Pair with Claude through the Claude Code CLI as a teammate sharing the current project environment, run a best-model reviewer/evaluator loop over features, fixes, changes, designs, research, or other artifacts, or delegate bounded work to Claude as an isolated parallel worker. Use when the user asks to ask, consult, pair, debate, review, evaluate, audit, or delegate to Claude; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Claude CLI."
 ---
 
 # Pair with Claude
@@ -8,6 +8,8 @@ description: "Pair with Claude through the Claude Code CLI as a teammate sharing
 Treat Claude as a second teammate, not an authority. Give it the same relevant project visibility and safe development capabilities as Codex while keeping one clear coordinator. Ask it to inspect evidence, challenge assumptions, and disagree candidly. Keep ownership of the final decision, integration, and verification.
 
 Use a driver/navigator contract in the active worktree: Codex coordinates and is the default writer, while both agents inspect the live project. Let Claude execute commands directly only behind a verified OS-enforced sandbox; otherwise Codex runs Claude's requested diagnostics, tests, benchmarks, and experiments in the same environment and returns sanitized results. Let Claude write only in an isolated worktree or scratch area unless the user explicitly authorizes shared-worktree edits. Freeze relevant files during each Claude turn; apply Codex changes between turns, then report the delta and require rereads. Never let both agents write the same checkout concurrently.
+
+Use a reviewer/evaluator contract when a concrete artifact reaches a reviewable checkpoint with explicit acceptance criteria. Give Claude an independent read-only first pass with the best available model and deepest focused effort, require evidence-backed findings, then let Codex verify, fix, or rebut them before Claude evaluates the new snapshot. Use ordinary pairing for open-ended critique and the delegated-worker lane for implementation. Keep Codex responsible for the quality gate; Claude supplies adversarial evidence, not approval authority.
 
 Use a delegated-worker contract when bounded independent work can run in parallel. Give Claude exclusive write ownership of a task-local scratch directory or explicit worktree, let it accept edits there, supervise requests for greater authority, and keep Codex as the sole integrator. Do not delegate merely to appear parallel; keep tightly coupled or serial work in the pairing lane.
 
@@ -34,8 +36,9 @@ Use family aliases so the selection tracks current releases. Do not pin dated mo
 
 | Consultation | Model | Effort |
 | --- | --- | --- |
-| Focused review, opinion, or bounded research | `opus` | `high` |
-| Consequential review/research or bounded implementation with clear acceptance criteria | `opus` | `xhigh` |
+| Focused one-shot pairing review, opinion, or bounded research | `opus` | `high` |
+| Consequential pairing review/research or bounded implementation with clear acceptance criteria | `opus` | `xhigh` |
+| Reviewer/evaluator loop for a feature, fix, change, design, research result, or other artifact | `best` | `max` |
 | Hardest or longest-running analysis, important debate, architecture decision, root-cause investigation, or complex delegated technical spike | `best` | `max` |
 | Broad read-only review or research that materially benefits from parallel independent exploration | `best` | `ultracode` |
 
@@ -61,7 +64,7 @@ Give Claude real access to the development environment by default: launch it in 
 - Keep the relevant active-worktree files stable while Claude is inspecting them. Make Codex edits only between turns and include every change in the next-turn delta.
 - Redact secrets and unrelated private data from Codex-collected command output, logs, diffs, and JSON before sending them into the Claude conversation. Output from a Claude-executed command reaches Claude before Codex can redact it, so broker any potentially sensitive command through Codex instead.
 
-`--safe-mode` disables ordinary user and project customizations, but admin-managed policy still applies. Before any write-capable Claude lane, inspect the effective managed settings and confirm that every remaining hook or policy-triggered customization is absent or confined to the authorized worker root, approved temporary paths, and allowed network effects. If that policy cannot be inspected or its side effects cannot be confined, do not grant host write access: use read-only pairing with Codex-brokered changes, or an OS-isolated environment that contains the effects.
+`--safe-mode` disables ordinary user and project customizations, but admin-managed policy still applies. Before any lane that promises read-only behavior or bounded writes, inspect the effective managed settings and confirm that every remaining hook or policy-triggered customization respects that lane's file, process, and network boundary. If the policy cannot be inspected or its side effects cannot be confined, do not claim or grant that boundary on the host: use an OS-isolated environment that contains the effects, or skip Claude and continue independently.
 
 ### Pair in the active worktree by default
 
@@ -79,6 +82,27 @@ Expose `Bash` directly only when all of these conditions hold:
 - `Bash(dangerouslyDisableSandbox:true)`, `Bash(run_in_background:true)`, and mutation-capable external tools remain denied, and every process is quiescent before Codex resumes writing.
 
 If any condition cannot be established, omit `Bash` and broker commands through Codex. `dontAsk`, `--allowedTools`, `Read(...)` denies, and narrow command patterns are permission guardrails, not filesystem containment: built-in read-only shell commands can auto-run, and arbitrary subprocesses can bypass file-tool rules. Even behind the strict sandbox, use only reviewed command families, set a timeout, account for ignored artifacts, and reconcile `git status` after each turn.
+
+### Run a reviewer/evaluator loop
+
+Use this lane only after a feature, fix, refactor, design, document, research result, configuration, plan, or other concrete artifact reaches a reviewable checkpoint with explicit acceptance criteria. Define the evaluation rubric from the artifact type; do not reduce every evaluation to a code review.
+
+Freeze and record an evaluation ID and review target: canonical root or curated artifact directory, base ref, reviewed ref or snapshot, complete scoped delta including untracked files, dirty-file ownership, artifact paths or hashes, intended behavior, acceptance criteria, relevant instructions, exclusions, existing validation results, material-finding threshold, and review cap. Default the material threshold to `P2`. If Codex must keep writing, review a separate immutable snapshot or worktree instead of a drifting active checkout.
+
+Start a fresh foreground read-only session with `--model best --effort max`; never use the pairing or worker session that authored the candidate to evaluate its own work. Use the Bash-free active-worktree invocation below with only `Read,Glob,Grep`, replacing its model, effort, objective, and lane contract for this review; use the context-only equivalent for a curated non-repository artifact. Add narrowly scoped web tools only when evaluating claims that require primary-source verification. Withhold Codex's preferred conclusion, implementation rationale, suspected findings, and self-review until Claude completes its independent first pass. Omit an explicit fallback by default because `best` already resolves to the best model available to the account. If overload, a model restriction, or an effort cap degrades the requested `best`/`max` gate, disclose it and do not count that result as the requested final gate without the user's acceptance.
+
+Require a structured evaluation containing:
+
+- a verdict of `pass`, `request_changes`, or `unable_to_evaluate`, criterion-by-criterion status of `met`, `not_met`, or `unknown`, plus reviewed coverage and residual risks;
+- stable finding IDs with severity based on plausible impact, likelihood, and urgency rather than issue category: `P0` for imminent catastrophic or irreversible harm; `P1` for serious, likely user, business, security, correctness, reliability, or operational harm; `P2` for material but bounded risk; and `P3` for low-impact advisory or repository-convention improvements;
+- for every finding, confidence, exact location, direct evidence separated from inference, concrete impact or failing scenario, the smallest falsifiable check, the smallest reasonable remediation, and whether the issue is introduced, pre-existing, or uncertain;
+- no generic test requests, stylistic preferences, praise, or speculative risks unless tied to a specific uncovered behavior, acceptance criterion, or repository rule; report advisory observations below the material threshold separately.
+
+Codex must independently reproduce or inspect each actionable claim and keep a disposition ledger: `accepted`, `rejected_with_evidence`, `needs_experiment`, or `deferred_by_user`. Codex remains the writer. Fix accepted findings, run proportionate checks, preserve unrelated and user-owned work, and never change an artifact merely to satisfy Claude without validating the claim.
+
+Resume the same evaluator session with the exact candidate version and delta since the reviewed snapshot, finding-ID-to-resolution mapping, new validation evidence, rebuttal evidence, and newly discovered constraints. Require Claude to reread the full target plus changed and adjacent surfaces, close or reopen existing IDs, look for fix-introduced regressions, and report any newly discovered finding within the frozen scope. Label each new finding as introduced by the delta, previously masked, or missed in an earlier round; never suppress a material first-pass miss. Start a new evaluation ID and fresh blind session instead when the architecture, scope, base, access lane, artifact, or evaluation rubric changes materially. A fresh tie-breaker for a consequential unresolved claim counts against the review cap unless the user authorizes an extension.
+
+Codex may pass the gate only when the reviewed candidate version remains unchanged, the evaluator completed the frozen scope, every required criterion is `met` by independently checked evidence, Codex's acceptance checks succeed, no verified unresolved `P0` or `P1` remains, every other finding at or above the material threshold is verified fixed, rejected with evidence, or explicitly deferred by the user, no `needs_experiment` finding remains at or above that threshold, no material delta remains unreviewed, and coverage plus residual risk are recorded. Record Claude's verdict but treat it as evidence, not a veto or proof: if Codex overrides `request_changes`, map every remaining finding to decisive rebuttal evidence and report the disagreement. Stop as blocked when required evidence or authorized verification is unavailable. Limit normal convergence to the initial review plus two fix/re-review rounds. If the same objectively unresolved material disagreement survives two evidence exchanges without new evidence, or the gate remains blocked after the round limit, stop as inconclusive and present the evidence, disagreement, and decision needed to the user.
 
 ### Give Claude a foreground isolated editable spike
 
@@ -177,6 +201,7 @@ Append this common teammate contract with `--append-system-prompt`:
 Append exactly one lane contract as well:
 
 - Active-worktree, context-only, and research lanes: `This is a read-only lane. Do not edit or create files anywhere.`
+- Reviewer/evaluator: `This is an independent read-only evaluation lane. Evaluate only the frozen target and stated rubric, return the required verdict and evidence-backed findings, and do not edit or create files anywhere. Do not optimize for agreement with Codex.`
 - Isolated editable spike: `This is an isolated-edit lane. You may edit only inside <canonical isolated root>. Do not touch Codex's active checkout, shared Git metadata, protected instruction/configuration surfaces, or external systems.`
 - Delegated worker: `This is a delegated-worker lane. Accept edits only inside <canonical worker root>, stay within the task capsule, and stop for Codex approval before using greater authority. Do not touch Codex's checkout, stage or commit, change Git refs or configuration, push, open a pull request, publish, deploy, contact people, or mutate external systems.`
 
