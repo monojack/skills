@@ -8,6 +8,7 @@ Shared agent skills installable from GitHub with [`npx skills`](https://skills.s
 - `codebase-review`: perform a thorough whole-codebase review, consult relevant official framework documentation first, write findings under `reviews/`, and open GitHub issues for each actionable finding.
 - `incremental-development`: deliver software changes as small, focused, review-gated, and bisectable commits with explicit approval before each commit.
 - `pair-with-claude`: collaborate with Claude in the shared project environment, run bounded best-model evaluation loops over concrete candidates, or delegate work to supervised scratch/worktree workers.
+- `pair-with-codex`: collaborate with Codex in the shared project environment, run bounded best-model evaluation loops over concrete candidates, or delegate work to supervised scratch/worktree workers.
 
 The former `gh-issue-pr-loop` and `gh-pr-loop` skills were consolidated into `gh-workflow-loop`. Use `gh-workflow-loop` for both issue-to-PR implementation and existing-PR review workflows.
 
