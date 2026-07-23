@@ -20,7 +20,8 @@ Create a task-local map with the requirement, evidence source, status (`verified
    - OS-enforced process, filesystem, and network containment that can fail closed;
    - background launch, identity, status, logs, input or approval handoff, cancellation, and terminal-state observation;
    - worktree or scratch isolation, base selection, lifecycle behavior, and treatment of dirty or untracked state;
-   - session persistence, privacy controls, and safe continuation semantics.
+   - session persistence, privacy controls, and safe continuation semantics;
+   - machine-readable usage telemetry, including which token, cache, cost, and duration fields are exposed and whether values are per-turn, per-session, or cumulative.
 
 Discovery must not start a login flow, update the CLI, launch a worker, edit configuration, execute project code, contact external systems, or probe destructive boundaries. If a model-routing or parser behavior cannot otherwise be confirmed, use at most one bounded neutral preflight from a non-project directory with no tools, no project context, no sensitive input, and no persistence when supported. Tell the user first when it incurs meaningful cost.
 
@@ -38,6 +39,7 @@ Translate the lane's invariants into the discovered capabilities instead of copy
 4. Construct a structured argument vector. Send dynamic dossiers as data, never as executable shell source.
 5. Include the relevant teammate and lane contracts explicitly when configuration isolation may suppress project instructions.
 6. Record requested and observed model/effort, session identity, root, snapshot, permission boundary, and any downgrade. Launch only when every required safety and lane-boundary map entry is `verified`; authentication alone may remain pending for the bounded intended request described above.
+7. For each foreground non-interactive invocation, use `claude -p --output-format json` and retain the terminal `result` object. Use `claude -p --output-format stream-json --verbose` only when per-step telemetry is required. Treat each result as invocation-scoped; prefer `modelUsage` for whole-tree accounting when present because top-level `usage` can exclude nested agents. If the task resumes the same session in later invocations, retain and manually aggregate every result for the complete session report while preserving the separate input, cache-creation, cache-read, output, cost, and duration fields. If the structured-output flags are unavailable or renamed, use only a documented machine-readable replacement; otherwise report usage as unavailable.
 
 Before launch, inspect the effective settings, hooks, plugins, agents, commands, and environment overrides that can change those semantics. A troubleshooting or safe mode is useful only after verifying what it does and does not disable in the installed CLI.
 

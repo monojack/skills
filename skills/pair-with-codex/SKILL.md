@@ -24,7 +24,7 @@ Treat an explicit request to use Codex as authorization to share the minimum nec
 
 Before the first Codex invocation in a task, and again when changing lanes, read [runtime-discovery.md](references/runtime-discovery.md). Discover the installed CLI's current mechanisms instead of copying remembered commands.
 
-Build a task-local capability map for the selected lane: executable and authentication readiness; foreground or background session control; structured results and exact session continuation; model and reasoning-effort selection; sandbox, approval, tool, and path controls; effective configuration layers and project instructions; OS containment; scratch and worktree behavior; lifecycle supervision; and observable completion.
+Build a task-local capability map for the selected lane: executable and authentication readiness; foreground or background session control; structured results and exact session continuation; model and reasoning-effort selection; sandbox, approval, tool, and path controls; effective configuration layers and project instructions; OS containment; scratch and worktree behavior; lifecycle supervision; observable completion; and any per-invocation or session usage telemetry the CLI exposes.
 
 Compile the invocation from semantic requirements:
 
@@ -34,6 +34,7 @@ Compile the invocation from semantic requirements:
 4. Construct an argument vector and transmit dynamic dossiers as data, never shell source.
 5. Record the root, snapshot, lane, requested and observed model/effort, session identity, sandbox and approval boundary, and any downgrade.
 6. Launch only when every required safety and lane-boundary capability is verified and has a fail-closed alternative. Authentication may be established by the first otherwise-safe intended request as described in the runtime reference.
+7. For every foreground non-interactive turn, pass `--json` to `codex exec` or `codex exec resume`, as appropriate, and capture the terminal `turn.completed.usage` object. If runtime discovery shows that `--json` is unavailable or renamed, use the discovered machine-readable equivalent and report the downgrade.
 
 Do not install or update the CLI, initiate login, or perform a live mutation merely to discover support. If the executable, authentication, or required safety capability is unavailable, continue independently and report the limitation.
 
@@ -133,5 +134,9 @@ Stop or finish the worker and revoke its lease before review. Compare the whole 
 Capture and resume only the exact session identity associated with the problem, canonical root, lane, baseline, and observed model. Repeat safety constraints on continuation unless the current CLI proves they persist. Never resume an edit-capable session into a read-only active checkout, select an implicit recent session, or run concurrent turns against one conversation.
 
 Require a successful process result before trusting Codex's response. Verify code claims locally, research against primary sources, and operational claims with proportionate evidence. Reconcile files, refs, generated artifacts, processes, and mutable services after execution-capable turns.
+
+Capture Codex's reported usage for every completed invocation when available. Include the fields actually returned in the final user-facing report, such as input, cached input, cache-write input, output, and reasoning-output tokens, and label them as invocation-scoped. Do not invent a total, cost, or duration when the CLI does not emit one, and do not double-count cached or reasoning detail fields when calculating a combined value.
+
+When the task resumes the same Codex session across multiple CLI invocations, retain each invocation's usage record and aggregate them manually for a complete session report. Present the session aggregate separately from the latest invocation, preserve field semantics while summing, and state briefly when any invocation's usage is unavailable.
 
 State meaningful unresolved disagreement and every material downgrade. Retry a transient failure at most once when worthwhile; otherwise continue independently. Remove sessions and isolation roots only after useful work is preserved, destination validation succeeds, no process owns the root, and no unreviewed changes remain.
