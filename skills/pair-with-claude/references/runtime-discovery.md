@@ -14,7 +14,7 @@ Create a task-local map with the requirement, evidence source, status (`verified
    - foreground non-interactive requests, reliable exit status, and machine-readable results;
    - resumable sessions and a way to observe the actual model, errors, denials, and fallback;
    - aliases or identifiers for the latest Opus-class model and the best model available to the account;
-   - supported reasoning controls and the deepest focused level, including environment or organization overrides;
+   - supported reasoning controls, the deepest focused level, and a way to observe the effective effort after environment or organization overrides;
    - tool availability controls, approval rules, hard denies, and path boundaries;
    - customization isolation and the managed settings or hooks that remain effective;
    - OS-enforced process, filesystem, and network containment that can fail closed;
@@ -40,6 +40,8 @@ Translate the lane's invariants into the discovered capabilities instead of copy
 5. Include the relevant teammate and lane contracts explicitly when configuration isolation may suppress project instructions.
 6. Record requested and observed model/effort, session identity, root, snapshot, permission boundary, and any downgrade. Launch only when every required safety and lane-boundary map entry is `verified`; authentication alone may remain pending for the bounded intended request described above.
 7. For each foreground non-interactive invocation, use `claude -p --output-format json` and retain the terminal `result` object. Use `claude -p --output-format stream-json --verbose` only when per-step telemetry is required. Treat each result as invocation-scoped; prefer `modelUsage` for whole-tree accounting when present because top-level `usage` can exclude nested agents. If the task resumes the same session in later invocations, retain and manually aggregate every result for the complete session report while preserving the separate input, cache-creation, cache-read, output, cost, and duration fields. If the structured-output flags are unavailable or renamed, use only a documented machine-readable replacement; otherwise report usage as unavailable.
+8. After each invocation, extract actual model identities from `modelUsage`, structured initialization data, session metadata, or another verified runtime source, and extract effective effort only from emitted runtime evidence. Record the evidence source and any fallback, substitution, or cap. Treat `--model` and `--effort` arguments as requested values only. If either actual value is not observable, mark it `unverified` in the final report instead of inferring it; list every observed fallback, helper, or subagent model separately.
+9. Maintain a telemetry record for every attempted invocation, including failed or incomplete attempts. Always include those records in the final report. Mark missing usage fields `unavailable` and unobservable actual routing `unverified`, with a brief reason. If no invocation runs, report `not run` and why.
 
 Before launch, inspect the effective settings, hooks, plugins, agents, commands, and environment overrides that can change those semantics. A troubleshooting or safe mode is useful only after verifying what it does and does not disable in the installed CLI.
 

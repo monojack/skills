@@ -14,7 +14,7 @@ Create a task-local map with the requirement, evidence source, status (`verified
    - foreground non-interactive requests, reliable exit status, and machine-readable results;
    - resumable sessions and a way to observe the actual model, errors, denials, and fallback;
    - aliases or identifiers for the latest plain GPT model and the best plain GPT model available to the account, and whether the CLI accepts and honors a non-default model selection instead of its Codex-tuned default;
-   - supported reasoning-effort controls and the deepest focused level, including configuration or organization overrides;
+   - supported reasoning-effort controls, the deepest focused level, and a way to observe the effective effort after configuration or organization overrides;
    - sandbox modes, approval policies, tool availability controls, hard denies, and path boundaries;
    - configuration layering — managed policy, global config, profiles, project files, environment variables, and flags — and which settings remain effective when customizations are reduced;
    - OS-enforced process, filesystem, and network containment that can fail closed on this platform;
@@ -40,6 +40,8 @@ Translate the lane's invariants into the discovered capabilities instead of copy
 5. Include the relevant teammate and lane contracts explicitly when configuration isolation may suppress project instruction files.
 6. Record requested and observed model/effort, session identity, root, snapshot, sandbox and approval boundary, and any downgrade. Launch only when every required safety and lane-boundary map entry is `verified`; authentication alone may remain pending for the bounded intended request described above.
 7. For each foreground non-interactive invocation, pass `--json` to `codex exec` or `codex exec resume`, as appropriate, and retain the terminal `turn.completed.usage` object. Treat that object as invocation-scoped. If the task resumes the same session in later invocations, retain and manually aggregate every captured usage object for the complete session report without double-counting cached-input, cache-write, or reasoning-output detail fields. If `--json` is unavailable or renamed, use only a documented machine-readable replacement; otherwise report usage as unavailable.
+8. After each invocation, extract the actual model identity and effective reasoning effort from structured events, session metadata, or another verified runtime source. Record the evidence source and any fallback, substitution, or cap. Treat launch arguments as requested values only. If either actual value is not observable, mark it `unverified` in the final report instead of inferring it; list every observed fallback, helper, or child model separately.
+9. Maintain a telemetry record for every attempted invocation, including failed or incomplete attempts. Always include those records in the final report. Mark missing usage fields `unavailable` and unobservable actual routing `unverified`, with a brief reason. If no invocation runs, report `not run` and why.
 
 Before launch, inspect the effective configuration layers, profiles, project instruction files, MCP servers, subagents, and environment overrides that can change those semantics. A stricter flag or minimal profile is useful only after verifying which layers it does and does not override in the installed CLI.
 
