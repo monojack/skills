@@ -13,8 +13,8 @@ Create a task-local map with the requirement, evidence source, status (`verified
 
    - foreground non-interactive requests, reliable exit status, and machine-readable results;
    - resumable sessions and a way to observe the actual model, errors, denials, and fallback;
-   - aliases or identifiers for the latest plain GPT model and the best plain GPT model available to the account, and whether the CLI accepts and honors a non-default model selection instead of its Codex-tuned default;
-   - supported reasoning-effort controls, the deepest focused level, and a way to observe the effective effort after configuration or organization overrides;
+   - aliases or identifiers for the capable current and strongest plain GPT model options relevant to task-complexity routing, and whether the CLI accepts and honors a non-default model selection instead of its Codex-tuned default;
+   - supported reasoning-effort controls at `high` and above, the strongest focused level, and a way to observe the effective effort after configuration or organization overrides;
    - sandbox modes, approval policies, tool availability controls, hard denies, and path boundaries;
    - configuration layering — managed policy, global config, profiles, project files, environment variables, and flags — and which settings remain effective when customizations are reduced;
    - OS-enforced process, filesystem, and network containment that can fail closed on this platform;
@@ -54,7 +54,7 @@ Do not run an empirical write, permission, containment, or escape test merely to
 - If writes cannot be isolated, serialize an explicitly authorized shared-checkout handoff; never delegate parallel writing there.
 - If a background worker cannot be supervised and stopped reliably, use a foreground or brokered workflow.
 - If one-use approval cannot be enforced, deny the operation or ask the user; never persist a broad rule or auto-approval policy as a shortcut.
-- If the requested best model or deepest effort cannot be observed, disclose the uncertainty or downgrade. Do not count a degraded evaluator as the requested final gate without user acceptance.
+- If an effort of at least `high` cannot be requested, skip Codex and continue independently. If the requested model or effort cannot be observed, disclose the uncertainty or downgrade. Do not count a degraded evaluator as the requested final gate without user acceptance.
 - If web or network scoping cannot be verified, omit it and provide independently verified sources yourself.
 - If session continuation cannot preserve the boundary, start a new session with a bounded reviewed summary.
 - If the executable or authentication is unavailable, continue independently. Do not install, update, or initiate login without the user's request.

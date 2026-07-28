@@ -1,6 +1,6 @@
 ---
 name: pair-with-claude
-description: "Pair with Claude through the Claude Code CLI as a teammate sharing the current project environment, run a best-model reviewer/evaluator loop over features, fixes, changes, designs, research, or other artifacts, or delegate bounded work to Claude as an isolated parallel worker. Use when the user asks to consult, pair, debate, review, evaluate, audit, or delegate to Claude; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Claude CLI."
+description: "Pair with Claude through the Claude Code CLI as a teammate sharing the current project environment, run a bounded reviewer/evaluator loop over features, fixes, changes, designs, research, or other artifacts, or delegate bounded work to Claude as an isolated parallel worker. Use when the user asks to consult, pair, debate, review, evaluate, audit, or delegate to Claude; when a consequential or ambiguous decision would benefit from an independent extra pair of eyes; or when a safely isolated implementation, research, debugging, or technical-spike task can run independently through the Claude CLI."
 ---
 
 # Pair with Claude
@@ -56,16 +56,13 @@ Do not install or update the CLI, initiate login, or perform a live mutation mer
 
 Give every session a compact task capsule containing the objective, acceptance criteria, root and snapshot, relevant instructions, authorized paths and actions, prohibited surfaces, existing evidence, exact critique or deliverable, expected report, retry bound, and stop conditions. Include a common instruction to separate observation from inference, cite evidence, propose falsifiable checks, and avoid external mutation.
 
-## Route model and reasoning by role
+## Route model and reasoning by task complexity
 
-Map these semantic choices to mechanisms discovered in the current CLI; never pin dated model IDs.
+Choose the model and reasoning effort independently for each invocation based on the task's actual complexity, stakes, ambiguity, breadth, and need for independent exploration. Use judgment instead of a fixed lane-to-model mapping, map the decision to mechanisms discovered in the current CLI, and never pin dated model IDs.
 
-| Work | Model intent | Reasoning intent |
-| --- | --- | --- |
-| Focused pairing, opinion, or bounded research | Latest accessible Opus-class model | High |
-| Consequential pairing or bounded implementation | Latest accessible Opus-class model | Higher |
-| Evaluator, architecture debate, root-cause investigation, or hardest spike | Best model accessible to the account, preferring the current Fable-class option when available and otherwise latest Opus | Deepest focused |
-| Broad independent exploration | Best accessible model | Strongest safe orchestration only when child permissions remain confined |
+Use a capable current model for focused, well-bounded work. Escalate toward the best model accessible to the account as complexity, uncertainty, or the consequences of a missed issue increase. A lane may inform the decision, but it does not determine it by itself.
+
+`high` is the absolute minimum reasoning effort. Never select or request `low` or `medium`. Choose a stronger supported effort when the task's complexity warrants it. If the runtime cannot request at least `high`, do not invoke Claude; continue independently and report the limitation. If provider or organization policy silently substitutes an observed effort below `high`, treat it as a downgrade and do not count that invocation as a requested evaluator gate without the user's acceptance.
 
 Record requested versus observed routing. Environment, provider, account, or organization policy may substitute or cap it. Disclose uncertainty and downgrades; do not count a degraded evaluator as the requested final gate without the user's acceptance.
 
@@ -85,7 +82,7 @@ Use this lane only for a concrete reviewable checkpoint with explicit acceptance
 
 Freeze an evaluation ID and candidate: canonical root or curated directory, base and reviewed snapshot, complete scoped delta including untracked files, dirty-file ownership, artifact paths or hashes, intended behavior, criteria, instructions, exclusions, prior validation, material-finding threshold, and round cap. If you must keep writing, evaluate an immutable copy or worktree.
 
-Use a fresh read-only session that did not author the candidate. Select the best accessible model and deepest focused reasoning. Withhold your conclusion, implementation rationale, suspected findings, and self-review until Claude completes its independent first pass.
+Use a fresh read-only session that did not author the candidate. Select its model and effort under the task-complexity routing rule above; consequential or complex evaluations will often justify a stronger model and effort above `high`, but the candidate's actual demands determine the choice. Withhold your conclusion, implementation rationale, suspected findings, and self-review until Claude completes its independent first pass.
 
 Require:
 

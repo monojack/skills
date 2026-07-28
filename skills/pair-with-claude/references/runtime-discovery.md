@@ -13,8 +13,8 @@ Create a task-local map with the requirement, evidence source, status (`verified
 
    - foreground non-interactive requests, reliable exit status, and machine-readable results;
    - resumable sessions and a way to observe the actual model, errors, denials, and fallback;
-   - aliases or identifiers for the latest Opus-class model and the best model available to the account;
-   - supported reasoning controls, the deepest focused level, and a way to observe the effective effort after environment or organization overrides;
+   - aliases or identifiers for the capable current and strongest model options relevant to task-complexity routing;
+   - supported reasoning controls at `high` and above, the strongest focused level, and a way to observe the effective effort after environment or organization overrides;
    - tool availability controls, approval rules, hard denies, and path boundaries;
    - customization isolation and the managed settings or hooks that remain effective;
    - OS-enforced process, filesystem, and network containment that can fail closed;
@@ -54,7 +54,7 @@ Do not run an empirical write, permission, containment, or escape test merely to
 - If writes cannot be isolated, serialize an explicitly authorized shared-checkout handoff; never delegate parallel writing there.
 - If a background worker cannot be supervised and stopped reliably, use a foreground or brokered workflow.
 - If one-use approval cannot be enforced, deny the operation or ask the user; never persist a broad rule as a shortcut.
-- If the requested best model or deepest effort cannot be observed, disclose the uncertainty or downgrade. Do not count a degraded evaluator as the requested final gate without user acceptance.
+- If an effort of at least `high` cannot be requested, skip Claude and continue independently. If the requested model or effort cannot be observed, disclose the uncertainty or downgrade. Do not count a degraded evaluator as the requested final gate without user acceptance.
 - If web or network scoping cannot be verified, omit it and provide independently verified sources yourself.
 - If session continuation cannot preserve the boundary, start a new session with a bounded reviewed summary.
 - If the executable or authentication is unavailable, continue independently. Do not install, update, or initiate login without the user's request.

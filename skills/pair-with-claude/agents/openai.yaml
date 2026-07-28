@@ -1,4 +1,4 @@
 interface:
   display_name: "Pair with Claude"
   short_description: "Pair, evaluate, or delegate work with Claude"
-  default_prompt: "Use $pair-with-claude to consult Claude, run a bounded best-model evaluation loop over a concrete candidate, or delegate isolated work, then verify the result."
+  default_prompt: "Use $pair-with-claude to consult Claude, run a bounded evaluation loop over a concrete candidate, or delegate isolated work, then verify the result."
