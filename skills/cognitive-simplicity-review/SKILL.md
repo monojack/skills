@@ -15,7 +15,7 @@ Reduce accidental cognitive complexity without reducing engineering quality. See
 
 Treat correctness, security, privacy, data integrity, transaction and concurrency semantics, performance, operability, testability, and external-contract fidelity as constraints. Prefer a longer or more structured design when it makes essential complexity and guarantees easier to understand.
 
-Default to review-only. Do not modify product code, begin a refactor, create implementation tasks, or merge changes until the review is complete and the user explicitly opts into a next phase.
+Default to review-only. Do not modify product code, begin a refactor, create implementation tasks, or integrate changes until the review is complete and the user explicitly opts into a next phase.
 
 ## Route model and reasoning practically
 
@@ -142,6 +142,8 @@ Ask the user which option they want and which recommendations, if any, should be
 
 When the user opts in, freeze the selected recommendation set and create a dependency graph before editing or dispatching work.
 
+Before creating implementation branches or worktrees or dispatching orchestrated work, state any repository-mandated Git constraints and ask the user whether they prefer a specific branch organization and integration strategy. Cover both how units should be branched, such as one branch per unit or stacked branches, and how approved work should land, such as rebase plus fast-forward-only, fast-forward-only, cherry-pick, squash, or merge commits. Recommend a practical default, record the answer as a phase-level constraint, and carry it into monitoring instructions. If the user already stated a preference in the current conversation, confirm and record it instead of asking again.
+
 The coordinating agent owns this skill's phase controls, frozen recommendation set, dependency graph, live-review updates, independent evaluation, correction loop, integration, user communication, and transition to re-review.
 
 Do not instruct a delegated implementation worker to load or use this full skill merely because its unit originated from the review. Give the worker a self-contained prompt that distills the human-maintainability objective, task-local evidence, required after-state, protected guarantees, exclusions, prerequisites, validation, and handoff format. The worker must read applicable repository instructions and may use narrower technical or implementation skills that independently fit its task. Ask a worker to use this skill only when its assigned task is itself an independent cognitive-simplicity review or re-review, not a bounded implementation unit.
@@ -153,10 +155,11 @@ For each implementation unit:
 - Keep one writer per checkout or worktree. Use isolated tasks, conversations, or worktrees only when the platform supports them and the user authorizes orchestration.
 - Start a dependent unit only after its prerequisites are integrated and validated.
 - Prefer small, reviewable, bisectable changes. Do not introduce compatibility layers, parallel contracts, or speculative abstractions unless explicitly required.
-- Review the complete diff and validation evidence independently before integration. Never merge solely because the worker reports success.
-- When that review finds a substantive problem, send a focused correction request back to the same worker or isolated task. Include the concrete evidence, the guarantee at risk, and the required after-state; require an updated diff and proportional validation, then independently re-review the result. Repeat only while the correction loop is making progress. Do not merge known defects or silently repair substantive worker mistakes in the coordinator checkout; report a blocker when the unit cannot reach an acceptable state.
+- Review the complete diff and validation evidence independently before integration. Never approve or integrate solely because the worker reports success.
+- When that review finds a substantive problem, send a focused correction request back to the same worker or isolated task. Include the concrete evidence, the guarantee at risk, and the required after-state; require an updated diff and proportional validation, then independently re-review the result. Repeat only while the correction loop is making progress. Do not integrate known defects or silently repair substantive worker mistakes in the coordinator checkout; report a blocker when the unit cannot reach an acceptable state.
 - Integrate in dependency order, preserve user-owned work, resolve conflicts against the intended after-state, and rerun proportional checks in the destination.
-- Notify the user periodically only for meaningful progress, merges, newly started dependent work, blockers, or decisions requiring input.
+- Apply the recorded Git strategy consistently. Surface any conflict with a mandatory repository policy before dispatching work. If the user explicitly has no preference and the repository is silent, keep destination history linear: rebase an approved worker branch onto the current destination, then integrate it with fast-forward-only. Use cherry-pick for selected atomic commits, or squash only when intermediate worker commits are not independently useful. Do not create merge commits unless the repository or user explicitly requests them. Never rewrite already-integrated history without explicit approval.
+- Notify the user periodically only for meaningful progress, integrations, newly started dependent work, blockers, or decisions requiring input.
 - Update the live review when implementation evidence confirms or contradicts a finding.
 
 ### Monitor orchestrated work practically
@@ -173,7 +176,7 @@ Explain the optional third phase in plain language: it independently tests wheth
 
 ## Re-review only after a separate opt-in
 
-When the user opts into re-review, assess the integrated destination state as current evidence. Do not assume a merged recommendation worked, award score increases for deleted code, or treat the implementation ledger as proof of improvement.
+When the user opts into re-review, assess the integrated destination state as current evidence. Do not assume an integrated recommendation worked, award score increases for deleted code, or treat the implementation ledger as proof of improvement.
 
 During re-review:
 
