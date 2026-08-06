@@ -142,6 +142,10 @@ Ask the user which option they want and which recommendations, if any, should be
 
 When the user opts in, freeze the selected recommendation set and create a dependency graph before editing or dispatching work.
 
+The coordinating agent owns this skill's phase controls, frozen recommendation set, dependency graph, live-review updates, independent evaluation, correction loop, integration, user communication, and transition to re-review.
+
+Do not instruct a delegated implementation worker to load or use this full skill merely because its unit originated from the review. Give the worker a self-contained prompt that distills the human-maintainability objective, task-local evidence, required after-state, protected guarantees, exclusions, prerequisites, validation, and handoff format. The worker must read applicable repository instructions and may use narrower technical or implementation skills that independently fit its task. Ask a worker to use this skill only when its assigned task is itself an independent cognitive-simplicity review or re-review, not a bounded implementation unit.
+
 For each implementation unit:
 
 - Restate the human-maintainability objective, scope, current evidence, required after-state, essential guarantees, exclusions, prerequisites, validation, and handoff format.
@@ -150,9 +154,18 @@ For each implementation unit:
 - Start a dependent unit only after its prerequisites are integrated and validated.
 - Prefer small, reviewable, bisectable changes. Do not introduce compatibility layers, parallel contracts, or speculative abstractions unless explicitly required.
 - Review the complete diff and validation evidence independently before integration. Never merge solely because the worker reports success.
+- When that review finds a substantive problem, send a focused correction request back to the same worker or isolated task. Include the concrete evidence, the guarantee at risk, and the required after-state; require an updated diff and proportional validation, then independently re-review the result. Repeat only while the correction loop is making progress. Do not merge known defects or silently repair substantive worker mistakes in the coordinator checkout; report a blocker when the unit cannot reach an acceptable state.
 - Integrate in dependency order, preserve user-owned work, resolve conflicts against the intended after-state, and rerun proportional checks in the destination.
 - Notify the user periodically only for meaningful progress, merges, newly started dependent work, blockers, or decisions requiring input.
 - Update the live review when implementation evidence confirms or contradicts a finding.
+
+### Monitor orchestrated work practically
+
+Use bounded task/thread waits during the initial handoff, even when scheduled monitoring is available. Confirm that each worker started from the intended state, read the applicable instructions, understood the assignment and protected guarantees, froze the correct scope, and chose a sound implementation direction. Inspect enough early progress to catch a mistaken plan before leaving the worker unattended, and intervene immediately when its direction would add accidental complexity, weaken quality, or conflict with the dependency graph.
+
+Once the handoff and direction are trustworthy, stop actively waiting when the platform supports scheduled work. Prefer a conversation-attached scheduled heartbeat or recurring follow-up for the remaining long-running orchestration. Choose a practical interval for the expected task duration, give the scheduled run enough state to resume coordination, and have it check task progress, review completed work, integrate approved units, and start newly unblocked dependencies. Scheduled monitoring does not broaden the user's authorization or relax the review and validation requirements above.
+
+When scheduled work is unavailable, continue with bounded task/thread waits. Also use a short bounded wait when completion is genuinely imminent and an immediate result is useful. Carry forward task cursors where supported and back off between unchanged checks; do not busy-poll.
 
 After all selected units are integrated, finish the implementation phase with the integrated commits, validation evidence, unresolved risks, deferred work, and any implementation evidence that changed the original review. Do not automatically begin the re-review.
 
