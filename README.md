@@ -6,7 +6,7 @@ Shared agent skills installable from GitHub with [`npx skills`](https://skills.s
 
 - `gh-workflow-loop`: run a unified GitHub workflow from either starting point: implement an issue through a ready PR, or handle an existing PR's review feedback with pre-push rechecks and heartbeat monitoring.
 - `codebase-review`: perform a thorough whole-codebase review, consult relevant official framework documentation first, write findings under `reviews/`, and open GitHub issues for each actionable finding.
-- `cognitive-simplicity-review`: review a repository or subsystem for accidental cognitive complexity, maintain a scored evidence-led live report, and offer planning or orchestrated implementation only after explicit user opt-in.
+- `cognitive-simplicity-review`: review a repository or subsystem for accidental cognitive complexity, maintain a scored evidence-led live report, and offer implementation and fresh re-review as separate opt-in phases.
 - `incremental-development`: deliver software changes as small, focused, review-gated, and bisectable commits with explicit approval before each commit.
 - `pair-with-claude`: collaborate with Claude in the shared project environment, run bounded evaluation loops over concrete candidates with task-adaptive model and effort selection, or delegate work to supervised scratch/worktree workers.
 - `pair-with-codex`: collaborate with Codex in the shared project environment, run bounded evaluation loops over concrete candidates with task-adaptive model and effort selection, or delegate work to supervised scratch/worktree workers.

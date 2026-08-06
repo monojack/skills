@@ -146,3 +146,29 @@ When the user opts into implementation, add a ledger to the live review:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 Use states such as `planned`, `active`, `reviewing`, `merged`, `blocked`, and `deferred`. Update a recommendation's evidence and score only after reviewing the integrated destination state, not merely after a worker reports completion.
+
+## Opt-in re-review addendum
+
+Add this only when the user separately opts into the re-review phase:
+
+```markdown
+## Re-review
+
+- Re-reviewed ref and date:
+- Baseline review ref:
+- Integrated change set:
+- Scope or evidence differences:
+
+| Angle | Before | After | Change justified by |
+| --- | ---: | ---: | --- |
+
+### Recommendation outcomes
+
+### Guarantees re-verified
+
+### Remaining, displaced, or new complexity
+
+### Re-review conclusion
+```
+
+Do not overwrite the baseline scores. A re-review is an evidence comparison, not a completion ceremony; unchanged or lower scores are valid outcomes.

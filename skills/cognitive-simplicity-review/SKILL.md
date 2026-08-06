@@ -1,6 +1,6 @@
 ---
 name: cognitive-simplicity-review
-description: "Review a repository, application, subsystem, or feature for cognitive complexity and human maintainability. Use when asked to assess readability, navigability, onboarding difficulty, ownership clarity, execution-path traceability, overengineering, unnecessary abstractions or indirection, duplicated representations, tangled state, spaghetti code, dead or speculative machinery, or similar code smells; maintain an evidence-led live review with 1–10 scores and prioritized recommendations; then explain optional planning or implementation capabilities and ask whether the user wants to continue. Implementation is opt-in and must preserve correctness and engineering quality."
+description: "Review a repository, application, subsystem, or feature for cognitive complexity and human maintainability. Use when asked to assess readability, navigability, onboarding difficulty, ownership clarity, execution-path traceability, overengineering, unnecessary abstractions or indirection, duplicated representations, tangled state, spaghetti code, dead or speculative machinery, or similar code smells; maintain an evidence-led live review with 1–10 scores and prioritized recommendations; then explain optional planning, implementation, and re-review capabilities and ask whether the user wants to continue. Implementation and re-review are separate opt-in phases and must preserve correctness and engineering quality."
 ---
 
 # Cognitive Simplicity Review
@@ -121,14 +121,20 @@ Finish with:
 - validation and evidence gaps;
 - the implementation dependency graph and major risk boundaries, without starting implementation.
 
-Then explain what can happen next:
+Explain the workflow as three separately controlled phases:
+
+1. **Review:** the current evidence-led assessment, completed without product-code changes.
+2. **Implementation:** an optional phase for selected recommendations, entered only after explicit user approval.
+3. **Re-review:** an optional fresh assessment of the integrated result, entered only after a second explicit user approval.
+
+After the initial review, explain these immediate options:
 
 1. Stop at the review.
 2. Turn selected recommendations into self-contained prompts, issues, or an implementation plan.
 3. Implement selected recommendations incrementally in the current task.
-4. Orchestrate isolated Codex or Claude tasks/conversations in dependency order, review every result, integrate approved units, rerun proportional validation, and perform a final re-review.
+4. Orchestrate isolated Codex or Claude tasks/conversations in dependency order, review every result, integrate approved units, and rerun proportional validation.
 
-Explain how each applicable option would work before asking: what the agent would create, where changes would happen, how dependencies and isolated writers would be handled, what the agent would review before integration, and which validation and final re-review would follow.
+Explain how each applicable option would work before asking: what the agent would create, where changes would happen, how dependencies and isolated writers would be handled, what the agent would review before integration, and which validation would follow. Mention that re-review remains available afterward as a separate third phase; do not bundle its approval into implementation.
 
 Ask the user which option they want and which recommendations, if any, should be deferred. Do not infer implementation approval from the review request.
 
@@ -148,4 +154,23 @@ For each implementation unit:
 - Notify the user periodically only for meaningful progress, merges, newly started dependent work, blockers, or decisions requiring input.
 - Update the live review when implementation evidence confirms or contradicts a finding.
 
-After all selected units are integrated, re-review the current code rather than merely checking off recommendations. Recalculate scores, record remaining accidental and essential complexity, and identify whether any repository guidance should be updated to prevent regression without encouraging superficial simplification.
+After all selected units are integrated, finish the implementation phase with the integrated commits, validation evidence, unresolved risks, deferred work, and any implementation evidence that changed the original review. Do not automatically begin the re-review.
+
+Explain the optional third phase in plain language: it independently tests whether the integrated code actually became easier to understand without losing quality, rather than merely checking that implementation tasks were completed. Describe the evidence it will revisit and ask whether the user wants to opt in.
+
+## Re-review only after a separate opt-in
+
+When the user opts into re-review, assess the integrated destination state as current evidence. Do not assume a merged recommendation worked, award score increases for deleted code, or treat the implementation ledger as proof of improvement.
+
+During re-review:
+
+- Re-read applicable instructions and confirm the reviewed ref, scope, exclusions, and changes since the baseline review.
+- Retrace the representative execution, state, failure, cancellation, cleanup, persistence, and composition paths affected by the work.
+- Revisit every original finding and score, but also look for new indirection, split ownership, hidden guarantees, or complexity displaced into another module.
+- Compare equivalent measurements only when their tool, configuration, and scope are sufficiently consistent; explain any non-comparable evidence.
+- Classify each recommendation as effective, partially effective, ineffective, regressed, reverted, deferred, or no longer applicable, with code evidence.
+- Verify that correctness and the protected engineering qualities remain intact using proportional tests and direct inspection.
+- Amend the live review transparently. Preserve the original baseline, record material reversals, and distinguish remaining essential complexity from accidental complexity.
+- Recalculate every investigated angle and the overall assessment. Report unchanged or lower scores honestly when the integrated result does not justify improvement.
+
+Finish with a concise before-and-after comparison, the strongest improvements, quality guarantees verified, remaining or newly introduced problems, residual risks, and any repository guidance worth adding to prevent regression. Further implementation still requires another explicit user opt-in.
