@@ -10,6 +10,7 @@ Shared agent skills installable from GitHub with [`npx skills`](https://skills.s
 - `incremental-development`: deliver software changes as small, focused, review-gated, and bisectable commits with explicit approval before each commit.
 - `pair-with-claude`: collaborate with Claude in the shared project environment, run bounded evaluation loops over concrete candidates with task-adaptive model and effort selection, or delegate work to supervised scratch/worktree workers.
 - `pair-with-codex`: collaborate with Codex in the shared project environment, run bounded evaluation loops over concrete candidates with task-adaptive model and effort selection, or delegate work to supervised scratch/worktree workers.
+- `collaborate-across-projects`: broker a resumable, evidence-led conversation between agents rooted in separate projects, require explicit agreement on the shared boundary, and deliver or implement the jointly verified result.
 
 The former `gh-issue-pr-loop` and `gh-pr-loop` skills were consolidated into `gh-workflow-loop`. Use `gh-workflow-loop` for both issue-to-PR implementation and existing-PR review workflows.
 

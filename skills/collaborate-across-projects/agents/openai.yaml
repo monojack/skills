@@ -1,0 +1,4 @@
+interface:
+  display_name: "Collaborate Across Projects"
+  short_description: "Broker joint work across projects"
+  default_prompt: "Use $collaborate-across-projects to coordinate an agreed integration across two repositories."
