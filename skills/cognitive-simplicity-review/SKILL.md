@@ -1,6 +1,6 @@
 ---
 name: cognitive-simplicity-review
-description: "Review a repository, application, subsystem, or feature for cognitive complexity and human maintainability. Use when asked to assess readability, navigability, onboarding difficulty, ownership clarity, execution-path traceability, overengineering, unnecessary abstractions or indirection, duplicated representations, tangled state, spaghetti code, dead or speculative machinery, or similar code smells; maintain an evidence-led live review with 1–10 scores and prioritized recommendations; then explain optional planning, implementation, and re-review capabilities and ask whether the user wants to continue. Implementation and re-review are separate opt-in phases and must preserve correctness and engineering quality."
+description: "Review a repository, subsystem, or feature for accidental cognitive complexity: readability, navigability, ownership clarity, execution-path traceability, unnecessary indirection, duplicated representations, tangled state, and speculative machinery. Findings must demonstrate a concrete burden on understanding or changing the code; this is not a general bug hunt, security audit, performance review, or best-practices review. Maintain a scored evidence-led report and offer planning, implementation, and re-review as separate opt-in phases."
 ---
 
 # Cognitive Simplicity Review
@@ -17,6 +17,24 @@ Treat correctness, security, privacy, data integrity, transaction and concurrenc
 
 Default to review-only. Do not modify product code, begin a refactor, create implementation tasks, or integrate changes until the review is complete and the user explicitly opts into a next phase.
 
+## Keep findings about cognitive simplicity
+
+The review asks what a developer must understand to explain or change the system. It does not ask for every way the system could be improved. Correctness and the other engineering qualities above constrain proposed simplifications; they are not additional audit tracks. Inspect them to understand why complexity exists and what must survive a change.
+
+Admit a finding only when the evidence establishes all three:
+
+1. **A concrete reader task:** for example, locate the retry policy owner, trace cancellation, or add one supported event type.
+2. **An avoidable reasoning burden:** identify the competing owners, representations to reconcile, hidden transitions, misleading names, or unnecessary concepts the reader must reconstruct, with direct code evidence.
+3. **A simpler after-state:** explain what the reader would no longer need to infer, compare, or keep in mind, while preserving required behavior and boundaries.
+
+Apply this counterfactual: **if the behavior were correct and all tests passed, would this understanding problem still be worth reporting?** A bug may reveal split ownership or hidden state, but the finding must independently prove that cognitive problem. Calling a defect "confusing," "hard to maintain," or "error-prone" does not establish it.
+
+Standalone bugs, missing validation, missing tests, missing features, optimization opportunities, dependency upgrades, and generic best-practice recommendations do not qualify. Neither does the mere presence of a code smell from the investigation checklist. Report fewer findings, including none, when no material cognitive burden is demonstrated.
+
+If a pre-existing incidental defect creates a concrete serious risk or blocks a proposed simplification, briefly flag it as outside this review's scope, with evidence and uncertainty. Do not turn it into a scored finding, expand into a bug inventory, or add its repair to the recommendation plan. Pursue broader review or repair of unrelated defects only when it is also in the user's requested scope.
+
+Apply this boundary to delegated review prompts and screen returned findings before adding them to the live review. Read the rubric's contrasting examples before admitting findings.
+
 ## Route model and reasoning practically
 
 Use the latest suitable model available on the active Codex or Claude platform. Do not hard-code dated model names or assume one model family is always best.
@@ -31,7 +49,7 @@ Record material model or effort downgrades when the platform cannot honor the re
 2. Read every applicable repository instruction file before judging or editing anything. Preserve unrelated and user-owned changes.
 3. Keep the review inside the requested scope. Inspect adjacent code only when needed to understand an inbound or outbound boundary, and label it as context rather than silently expanding the review.
 4. Treat current source, executable tests, schemas, generated contracts, runtime composition, and observed behavior as primary evidence. Use documentation, plans, spikes, and ADRs to understand reasoning and intended boundaries, but do not infer current truth from prose alone. Respect any authority explicitly assigned by repository instructions or the user.
-5. Treat compatibility, versioning, hardening, and guardrail concerns according to the user's context. Do not let generic hardening dominate a maintainability review unless it materially affects correctness or the mental model.
+5. Treat compatibility, versioning, hardening, and guardrail concerns according to the user's context. Inspect them only to establish a cognitive burden or a guarantee a proposed simplification must preserve; their absence or imperfection alone is not a finding.
 
 ## Create and maintain the live review
 
@@ -49,7 +67,7 @@ Never hard-wrap prose merely to satisfy a column width. Preserve deliberate para
 
 Inventory the target's entry points, public contracts, runtime composition, important services, domain concepts, persistence, state machines, external integrations, tests, and generated artifacts. Identify the likely "start here" path for a new developer.
 
-Trace representative happy, failure, cancellation, and cleanup paths end to end. Prefer concrete call chains and state transitions over architecture labels.
+Trace representative happy, failure, cancellation, and cleanup paths to establish what a reader must follow and where ownership becomes difficult to reconstruct. Prefer concrete call chains and state transitions over architecture labels. This is not an exhaustive search for failing cases.
 
 ### 2. Review by mental-model cost
 
@@ -68,7 +86,7 @@ Look specifically for duplicated DTOs and conversions, parallel contracts or sta
 
 ### 3. Use measurements as clues
 
-Use available static metrics, dependency tools, searches, and test results when they help locate risk. Record the exact command, tool, version when relevant, scope, and result.
+Use available static metrics, dependency tools, searches, and test results when they help locate cognitive burden or verify a guarantee relevant to a proposed simplification. Record the exact command, tool, version when relevant, scope, and result.
 
 Do not equate cognitive-complexity scores, LOC, file length, branch count, class count, import count, or layer count with design quality. A metric identifies where to read; the finding must explain the human reasoning cost and the guarantee any proposed simplification must preserve.
 
@@ -78,11 +96,12 @@ Do not install new tooling merely to manufacture a score when existing evidence 
 
 For every material finding, include:
 
-- a concise title and priority;
+- a concise title naming the cognitive burden and a priority based on its impact on reader tasks;
 - affected files and lines where practical;
 - direct code evidence, separated from inference;
 - the reader task that becomes difficult;
 - the accidental mental-model burden;
+- why that burden remains worth addressing even assuming correct behavior;
 - the correctness or quality constraints that must survive;
 - the smallest coherent recommendation;
 - dependencies, implementation risk, and validation evidence needed;
@@ -93,6 +112,8 @@ Avoid findings that say only "large file," "too many classes," "needs cleanup," 
 ### 5. Challenge the review
 
 Before finalizing, actively try to disprove the highest-priority findings. Trace the supposedly redundant boundary from both sides, inspect transaction and failure semantics, compare tests, and check whether an apparent duplication protects a trust, lifecycle, persistence, or external-contract boundary.
+
+Reapply the finding-admission criteria to every finding, including delegated ones. Remove standalone defects and general improvements rather than retrofitting a cognitive-simplicity justification onto them.
 
 Revise the live document when later evidence changes the conclusion. Do not reward deletion that would make essential complexity implicit or weaken a guarantee.
 
@@ -105,6 +126,8 @@ Separate safe pruning and boundary clarification from high-risk state-machine, p
 ## Score the result
 
 Score every investigated angle from 1 to 10 using the rubric anchors. Include evidence, confidence, and a realistic target where useful. Do not force a target of 10; a complex system can be excellent while retaining explicit essential complexity.
+
+Scores describe how understandable the code is, not how correct, secure, fast, or feature-complete it is. Bugs, missing coverage, and absent hardening do not lower a score without independent evidence of a cognitive burden.
 
 Include an overall score only after the per-angle scores. Explain weighting rather than hiding it in an arithmetic average. Distinguish measured static complexity from the review's human-maintainability scores.
 

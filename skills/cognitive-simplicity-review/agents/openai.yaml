@@ -1,4 +1,4 @@
 interface:
   display_name: "Cognitive Simplicity Review"
   short_description: "Review and reduce accidental code complexity"
-  default_prompt: "Use $cognitive-simplicity-review to review this codebase for accidental cognitive complexity, maintain a scored evidence-led report, and offer separate opt-in implementation and re-review phases."
+  default_prompt: "Use $cognitive-simplicity-review to assess accidental cognitive complexity, admitting only findings that demonstrate a concrete burden on understanding or changing the code. Preserve engineering guarantees without expanding into a general bug hunt or best-practices audit. Maintain a scored evidence-led report and offer separate opt-in implementation and re-review phases."

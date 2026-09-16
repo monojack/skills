@@ -2,12 +2,28 @@
 
 ## Contents
 
+- [Finding admission examples](#finding-admission-examples)
 - [Scoring anchors](#scoring-anchors)
 - [Minimum review angles](#minimum-review-angles)
 - [Interpreting complexity evidence](#interpreting-complexity-evidence)
 - [Finding priorities](#finding-priorities)
 - [Live review structure](#live-review-structure)
 - [Recommendation and implementation ledger](#recommendation-and-implementation-ledger)
+
+## Finding admission examples
+
+Apply the reader-task, avoidable-burden, and simpler-after-state criteria in `SKILL.md` before assigning priority or score. These pairs illustrate the evidence required; the cognitive finding is not implied by the defect in the left column.
+
+| Does not qualify by itself | Qualifies when supported by code evidence |
+| --- | --- |
+| A retry loop makes one extra attempt. | Changing the retry limit requires reconciling three independently maintained policy owners; one owner would remove that repeated reasoning even if all three currently agreed. |
+| An error path forgets to release a resource. | Ownership of release is split across callbacks and flags, so explaining who closes the resource requires reconstructing several lifetimes. A localized owner would make the existing cleanup contract explicit. |
+| An endpoint lacks input validation. | Equivalent request types are repeatedly converted without any semantic or trust-boundary difference; a reader must compare them to discover that they mean the same thing. |
+| A test case is missing. | Existing fixtures reconstruct private production wiring, so understanding one behavior requires learning a second implementation of the same composition rules. |
+| A query could be faster, a library newer, or code more idiomatic. | A wrapper changes familiar framework semantics without expressing a product rule, forcing readers to learn and trace an unnecessary second API. |
+| A function is long or a service has only one implementation. | A routine change crosses pass-through layers whose only effect is to rename the same data, with no independent policy, lifecycle, or contract to explain the extra steps. |
+
+A short, readable function with an incorrect comparison can have high cognitive-simplicity scores. A fully tested, behaviorally correct flow can score poorly when a reader must reconcile unnecessary owners or representations. Neither defect count nor test success determines these scores. It is valid to report no cognitive-simplicity findings.
 
 ## Scoring anchors
 
@@ -30,7 +46,7 @@ Use a realistic target for each angle. Treat 8 as an excellent default target fo
 
 ## Minimum review angles
 
-Investigate every angle that exists in the target. Mark an angle `not applicable` rather than inventing a score. Add target-specific angles when they materially affect the reader's mental model.
+Investigate every angle that exists in the target. Mark an angle `not applicable` rather than inventing a score. Add target-specific angles when they materially affect the reader's mental model. Each angle measures the cost of understanding the relevant code; it does not authorize a separate correctness, security, performance, coverage, or framework-compliance audit.
 
 | Angle | Core question | Useful evidence |
 | --- | --- | --- |
@@ -55,7 +71,7 @@ Investigate every angle that exists in the target. Mark an angle `not applicable
 Separate three kinds of evidence:
 
 - Direct observation: what the code, tests, schema, runtime, or command output shows.
-- Inference: the likely human or operational consequence of that observation.
+- Inference: the consequence for a concrete reader task, including what must be inferred, compared, or held in mind.
 - Recommendation: the proposed change and why it should reduce total mental cost.
 
 Treat quantitative measures only as locators:
@@ -70,12 +86,12 @@ When reporting a static metric, distinguish it from the 1–10 human-maintainabi
 
 ## Finding priorities
 
-Prioritize by impact on safe human change, not by aesthetic dislike.
+Prioritize admitted findings by the scope, frequency, and severity of the demonstrated reasoning burden on human change. Defect severity, hypothetical incidents, and aesthetic dislike do not establish cognitive priority.
 
 | Priority | Meaning |
 | --- | --- |
-| P0 | The mental model actively causes catastrophic or irreversible correctness risk; address immediately. Rare in a maintainability-focused review. |
-| P1 | A central path or state model is dangerously difficult to reason about and likely to cause serious defects or stalled development. |
+| P0 | An opaque or contradictory mental model blocks an urgent necessary change: even the relevant owner or invariant cannot be established. Exceptional; a severe defect alone does not qualify. |
+| P1 | Routine work on a central path requires broad reconstruction across competing owners, hidden state, or parallel representations; the burden substantially obstructs understanding or change. |
 | P2 | Material accidental complexity affects common changes, onboarding, or multiple features; plan a coherent correction. |
 | P3 | Localized friction or cleanup with bounded impact; fix opportunistically or combine with related work. |
 | Observation | Useful context, strength, or hypothesis that does not yet justify a change. |
@@ -114,6 +130,7 @@ Use this structure as a starting point and adapt it to the target:
 - Evidence:
 - Reader task made difficult:
 - Mental-model burden:
+- Why this matters even assuming correct behavior:
 - Guarantees to preserve:
 - Recommendation:
 - Dependencies and risk:
