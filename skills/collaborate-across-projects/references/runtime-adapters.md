@@ -1,6 +1,21 @@
 # Runtime Adapters
 
-Use this reference to open and continue one real conversation rooted in the target project. Treat command spellings as runtime-dependent; discover current support from read-only help before compiling an invocation.
+Use this reference to open and continue one real conversation rooted in the target project. Discover the current runtime's capabilities instead of relying on remembered product-specific commands.
+
+## Preserve runtime affinity
+
+Select the adapter matching the current conversation surface before considering any other adapter:
+
+| Current surface | Required first choice |
+| --- | --- |
+| Desktop application | Native project and conversation lifecycle capabilities; create a visible conversation in the same application |
+| CLI | The same CLI runtime's new-session and exact-resume capabilities |
+| Web, IDE, or hosted platform | That platform's native project selection and conversation lifecycle capabilities |
+| Other runtime | That runtime's native equivalent |
+
+Detect the current surface from runtime metadata and available capabilities, not from which unrelated executables or applications happen to be installed. Do not probe or select a CLI while a desktop application's native capabilities can satisfy the collaboration. Do not switch from a CLI to a desktop application merely because it is available.
+
+Fall back across runtimes only when the matching adapter fails the adapter contract below. Record the exact missing capability, announce the fallback and destination runtime before launching it, and include the downgrade in the final report. An unavailable target project may justify a fallback; familiarity with another runtime does not.
 
 ## Adapter contract
 
@@ -9,85 +24,72 @@ Accept an adapter only when it can provide every capability required for the sel
 | Capability | Required proof |
 | --- | --- |
 | Target context | Report and verify the canonical target project root |
-| New conversation | Return a unique task, thread, or session ID |
-| Exact continuation | Send another turn to that exact ID |
+| New conversation | Return a unique conversation identity |
+| Exact continuation | Send another turn to that exact identity |
 | Observable completion | Distinguish running, completed, blocked, and failed |
 | Structured result | Preserve the final response without terminal scraping when possible |
-| Permission boundary | Show effective read/write, tool, approval, and network authority |
-| Lifecycle | Wait, interrupt, and preserve useful state without selecting an unrelated session |
+| Permission boundary | Show effective read/write, execution, approval, and network authority |
+| Lifecycle | Observe, wait, interrupt, and preserve useful state without selecting an unrelated conversation |
 | Telemetry | Capture actual model, reasoning, usage, cost, and duration when exposed |
 
 Require write-root enforcement as well when the counterpart will implement. Read-only discovery does not require a write-capable adapter.
 
-## Native task or conversation API
+## Desktop application adapter
 
-Prefer a native API when it exposes tools equivalent to create, send, read, wait, interrupt, and identify the target project.
+When the current conversation runs in a desktop application, use that application's native project and conversation capabilities.
 
-1. Discover the available task/thread tools and their schemas.
-2. Verify that creation can bind to the exact target project, workspace, or worktree. A display title alone is not proof.
-3. Create one task because the operator explicitly requested cross-project collaboration.
-4. Record the returned task/thread ID and host/workspace identity.
-5. Send follow-up rounds to that exact task and use bounded waits for progress.
-6. Leave approval and user-input requests visible for the operator; never answer them by guessing.
-7. Do not create replacement tasks merely because a round is slow. Start over only when identity, project, or trust boundary changes.
+1. Discover capabilities equivalent to listing projects, creating a conversation, sending a follow-up, inspecting state, waiting for completion, and interrupting execution.
+2. Resolve the operator-specified target to the application's exact saved-project identity. Verify the canonical root, repository status, and execution host rather than matching only a display name.
+3. Create one new project conversation because the operator explicitly requested cross-project collaboration. Follow the application's current local-checkout versus isolated-workspace rules and the operator's explicit preference.
+4. Record the stable conversation identity and any host or workspace identity. If setup returns only a pending operation identity, wait for the stable conversation identity before attempting continuation.
+5. Send every round to that exact conversation and use bounded waits for progress. Do not use a shell or CLI as the message bridge.
+6. Leave approval and operator-input requests visible; never answer them by guessing.
+7. Do not create replacement conversations merely because a round is slow. Start over only when identity, project, or trust boundary changes.
 
-If the API creates a user-owned task visible in a sidebar, tell the operator which task is the counterpart. If the API cannot bind the requested target project, use a CLI adapter instead.
+Tell the operator which visible desktop conversation is the counterpart. Use another adapter only if the application cannot resolve or bind the requested target project, cannot create or exactly continue a conversation, or cannot enforce the required permission boundary; announce that fallback before launching it.
 
-## Codex CLI
+## CLI adapter
 
-Discover support with harmless commands such as `codex --help`, `codex exec --help`, and the exact resume subcommand’s help. Verify, rather than assume:
+Use this adapter first only when the current conversation itself runs in a CLI, or as an announced fallback when the current runtime cannot satisfy the adapter contract.
 
-- how to set the target working directory;
-- non-interactive execution and machine-readable event output;
-- the event carrying the new conversation ID and terminal result;
-- continuation by exact ID;
-- sandbox, approval, tool, model, and reasoning controls;
-- effective configuration, project instructions, and usage telemetry.
+Discover support with harmless version and help commands. Verify, rather than assume:
 
-For known modern CLIs, the relevant family is commonly `codex exec` with JSON events and `codex exec resume <exact-id>`, but use only syntax confirmed by the installed version. Set the process working directory to the canonical target root even when a directory flag also exists. Capture the conversation ID from structured output. Never use `resume --last` or an interactive recent-session picker.
+- how to set and verify the target working directory;
+- how to start a non-interactive conversation and obtain machine-readable output;
+- which structured result contains the new conversation identity and terminal status;
+- how to continue by the exact conversation identity;
+- effective file, command, network, approval, model, and reasoning controls;
+- configuration layers, project instructions, extensions, child-agent behavior, and usage telemetry.
 
-Start read-only and non-interactive. Do not use a full-access or approval-bypass mode. Before granting target writes, verify effective OS-level containment or keep the counterpart read-only and broker a serialized patch handoff.
+Launch the process from the canonical target root even when a directory option also exists. Capture identity from structured runtime output, never from model prose. Never use an implicit recent-session selector.
 
-## Claude Code CLI
+Start read-only and non-interactive. Do not use full-access or approval-bypass modes. Before granting target writes, verify effective containment around the target root or keep the counterpart read-only and broker a serialized patch handoff.
 
-Discover support with harmless help and version commands. Verify, rather than assume:
+## Other runtime adapter
 
-- print/non-interactive mode and JSON or stream-JSON output;
-- the result field carrying the session ID;
-- continuation with an exact session ID;
-- working-directory behavior;
-- permission mode, allowed/disallowed tools, settings, hooks, plugins, and subagents;
-- model, reasoning, usage, cost, and duration metadata.
+For a web application, IDE integration, hosted orchestrator, or another platform, build the adapter from semantics rather than brand-specific guesses:
 
-For known modern CLIs, the relevant family is commonly `claude -p --output-format json` and `--resume <exact-id>`, but use only syntax confirmed by the installed version. Launch the process from the canonical target root and verify the target reported by the counterpart. Never use an implicit continue/recent selector.
-
-Start without edit, shell, network, connector, workflow, or subagent authority. Claude permission settings are guardrails, not proof of OS containment. Keep the counterpart read-only unless its writable target boundary is independently enforced.
-
-## Other providers
-
-Build an adapter from semantics, not brand-specific guesses:
-
-1. Discover the provider’s create/start, send/resume, result, wait, and cancel surfaces.
-2. Start a new conversation with explicit target-root context.
-3. Obtain a stable ID from the runtime, not from parsing model prose.
-4. Resume only that ID for every round.
-5. Preserve structured responses and exit status.
+1. Discover capabilities equivalent to create, continue, inspect, wait, interrupt, and obtain a final result.
+2. Start a new conversation with explicit target-project context.
+3. Obtain a stable conversation identity from the runtime, not from parsing model prose.
+4. Continue only that identity for every round.
+5. Preserve structured responses and terminal status.
 6. Verify project and permission boundaries on every material mode change.
 
-Reject fire-and-forget commands, stateless one-shot prompts, and sessions that can only continue “the most recent” conversation. A pair of unrelated one-shot calls is not a dialogue.
+Reject fire-and-forget commands, stateless one-shot prompts, and runtimes that can continue only “the most recent” conversation. A pair of unrelated one-shot calls is not a dialogue.
 
 ## Invocation hygiene
 
-- Construct argument arrays through a process API when possible; send dynamic task capsules on standard input or another data channel, never as shell source.
-- Use the provider’s normal configured credential chain. Missing environment variables alone do not prove authentication failure.
+- Construct argument arrays through a process API when possible; send dynamic collaboration capsules on standard input or another data channel, never as shell source.
+- Use the runtime's normal configured credential chain. Missing environment variables alone do not prove authentication failure.
 - Do not print configuration files or secret-bearing environment values while checking readiness.
 - Do not install, upgrade, initiate login, or mutate a live system during discovery.
 - Bound waits and send concise progress updates during long turns.
-- Retry one transient failure at most once. Preserve the session identity and partial evidence.
+- Retry one transient failure at most once. Preserve the conversation identity and partial evidence.
 - Treat a successful process exit as necessary but insufficient; verify the structured terminal result and target-project evidence.
 
 ## Downgrade and failure handling
 
-If exact continuation fails, stop calling the exchange a collaboration. Preserve the accepted evidence, report the broken session, and either start a new explicitly identified collaboration with the operator’s knowledge or continue independently.
+If exact continuation fails, stop calling the exchange a collaboration. Preserve the accepted evidence, report the broken conversation, and either start a new explicitly identified collaboration with the operator's knowledge or continue independently.
 
 If only read-only operation is safe, complete discovery and the agreement, then provide the target-side patch or change plan for a serialized handoff. If no real target-root conversation can be opened, report `counterpart not run` and the missing adapter capability.

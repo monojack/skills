@@ -1,6 +1,6 @@
 ---
 name: collaborate-across-projects
-description: Coordinate a resumable, evidence-led collaboration between the current agent and a new Codex, Claude, or other agent conversation rooted in another operator-specified repository or project. Use when work crosses repository boundaries; when both sides of an integration, API, schema, migration, release, or discovery effort must be investigated from their own project contexts; or when the operator asks agents in separate projects to brainstorm, challenge each other, reach explicit agreement, and deliver the agreed artifact or implementation.
+description: Coordinate a resumable, evidence-led collaboration between the current agent and a new agent conversation rooted in another operator-specified repository or project while preserving the current desktop, CLI, web, IDE, or other runtime whenever it supports new conversations. Use when work crosses repository boundaries; when both sides of an integration, API, schema, migration, release, or discovery effort must be investigated from their own project contexts; or when the operator asks agents in separate projects to brainstorm, challenge each other, reach explicit agreement, and deliver the agreed artifact or implementation.
 ---
 
 # Collaborate Across Projects
@@ -25,17 +25,18 @@ Treat an explicit request to collaborate with a named target project as authoriz
 
 Never guess an ambiguous target root from nearby folders. Ask the operator when the target, deliverable, or required write authority cannot be established safely.
 
-## Open a real target-project conversation
+## Open the counterpart in the same runtime
 
-Read [runtime-adapters.md](references/runtime-adapters.md) before opening the counterpart. Prefer, in order:
+Read [runtime-adapters.md](references/runtime-adapters.md) before opening the counterpart. Identify the runtime hosting the current conversation, then preserve that runtime:
 
-1. a native task or conversation API that can select the exact target project and later send to and wait on the same task;
-2. an installed provider CLI launched with the target root as its working context and an exact resumable session ID;
-3. a user-mediated handoff when no programmatic resumable channel exists.
+1. From a desktop application, create and coordinate the counterpart through that application's native project and conversation capabilities so the new conversation appears in the same application. Do not launch a CLI counterpart while the application can create and continue a conversation in the requested target project.
+2. From a CLI session, create and resume the counterpart through that same CLI runtime. Do not switch to a desktop application merely because one is also installed.
+3. From another platform, use that platform's native conversation mechanism when it can bind the target project and resume the exact conversation.
+4. Fall back to another available adapter only when the current runtime lacks a required capability such as target-project selection, new-conversation creation, exact continuation, or the requested permission boundary.
 
-Use the provider named by the operator. Otherwise prefer the current agent family when it has a safe adapter, then another already-installed adapter. Do not install, upgrade, log in, or weaken permissions to make an adapter work. If no adapter can prove the target root and resume the same conversation, report the limitation instead of simulating collaboration.
+Treat runtime affinity as stronger than provider preference unless the operator explicitly asks to switch providers or surfaces. Before using a fallback, tell the operator which same-runtime capability is unavailable and which runtime will be used instead; proceed without another approval when the fallback remains within the requested collaboration scope. Do not install, upgrade, log in, or weaken permissions to make an adapter work. If no adapter can prove the target root and resume the same conversation, report the limitation instead of simulating collaboration.
 
-Record a collaboration ID, provider, conversation/session ID, canonical target root, starting snapshot, effective permission boundary, last acknowledged round, and current agreement version. Keep this collaboration record in task-local state or task-owned scratch outside tracked project roots unless the operator requests it as an artifact. Update it after every completed exchange so a long pause or context compaction cannot silently switch sessions. Resume by exact ID only; never use “latest”, “last”, or another implicit session selector.
+Record a collaboration ID, source runtime, counterpart runtime, fallback reason when applicable, provider, conversation/session ID, canonical target root, starting snapshot, effective permission boundary, last acknowledged round, and current agreement version. Keep this collaboration record in collaboration-local state or collaboration-owned scratch outside tracked project roots unless the operator requests it as an artifact. Update it after every completed exchange so a long pause or context compaction cannot silently switch sessions. Resume by exact ID only; never use “latest”, “last”, or another implicit session selector.
 
 ## Freeze both project contexts
 
@@ -51,7 +52,7 @@ Keep project instructions scoped to their project. Preserve operator-owned chang
 
 ## Bootstrap the counterpart
 
-Send a compact task capsule containing:
+Send a compact collaboration capsule containing:
 
 ```text
 COLLABORATION <id> — TARGET PROJECT COUNTERPART
@@ -169,7 +170,7 @@ If a boundary test cannot run, state exactly which claim remains unverified and 
 Lead with the actual result. Include:
 
 - collaboration status: `completed`, `blocked`, or `inconclusive`;
-- counterpart provider, target project, and exact conversation/session identity;
+- source runtime, counterpart runtime, any fallback reason, counterpart provider, target project, and exact conversation/session identity;
 - accepted agreement version or the unresolved decision IDs;
 - delivered artifacts and changed files grouped by project;
 - validation evidence, including the cross-project boundary check;
