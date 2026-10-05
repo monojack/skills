@@ -29,6 +29,17 @@ A short, readable function with an incorrect comparison can have high cognitive-
 
 Score the code a reader encounters now, not the architecture described in prose. Use the full 1–10 range, but do not manufacture precision beyond the evidence.
 
+Record an assessment status for each angle before assigning a score:
+
+| Status | Meaning | Numeric score |
+| --- | --- | --- |
+| `scored` | The angle applies and the examined evidence supports a defensible judgment. | 1–10 |
+| `not assessed` | The angle applies, but it has not been investigated. | — |
+| `insufficient evidence` | The angle was investigated, but the available evidence does not support a defensible score. | — |
+| `not applicable` | The concern does not exist within the review target. | — |
+
+Give a reason for every unscored status. For `not assessed` and `insufficient evidence`, identify the missing investigation or evidence; these are coverage gaps, not substitutes for reviewing applicable scopes. Never encode an unscored status as zero or silently count it as satisfactory. Withhold the overall numeric score when material gaps prevent a representative assessment, and record the appropriate unscored status instead.
+
 | Score | Meaning |
 | --- | --- |
 | 1 | The behavior is effectively unreconstructable without specialist or historical knowledge; competing owners or hidden state make safe change extremely difficult. |
@@ -46,7 +57,7 @@ Use a realistic target for each angle. Treat 8 as an excellent default target fo
 
 ## Minimum review angles
 
-Investigate every angle that exists in the target. Mark an angle `not applicable` rather than inventing a score. Add target-specific angles when they materially affect the reader's mental model. Each angle measures the cost of understanding the relevant code; it does not authorize a separate correctness, security, performance, coverage, or framework-compliance audit.
+Investigate every angle that exists in the target. Use the assessment statuses above to distinguish missing investigation, insufficient evidence, and concerns that do not apply. Add target-specific angles when they materially affect the reader's mental model. Each angle measures the cost of understanding the relevant code; it does not authorize a separate correctness, security, performance, coverage, or framework-compliance audit.
 
 | Angle | Core question | Useful evidence |
 | --- | --- | --- |
@@ -112,6 +123,7 @@ Use this structure as a starting point and adapt it to the target:
 - Exclusions:
 - Live status:
 - Last materially revised:
+- Baseline finalized at:
 
 ## Executive summary
 
@@ -135,7 +147,7 @@ Use this structure as a starting point and adapt it to the target:
 - Recommendation:
 - Dependencies and risk:
 - Validation needed:
-- Status: hypothesis | confirmed | revised | removed | implemented | deferred
+- Review status: hypothesis | confirmed | revised | removed | deferred
 
 ## Strengths to preserve
 
@@ -143,8 +155,8 @@ Use this structure as a starting point and adapt it to the target:
 
 ## Scores
 
-| Angle | Current | Realistic target | Confidence | Evidence summary |
-| --- | ---: | ---: | --- | --- |
+| Angle | Assessment status | Score | Realistic target | Confidence | Evidence summary or gap |
+| --- | --- | ---: | ---: | --- | --- |
 
 ## Revisions to earlier judgments
 
@@ -153,7 +165,9 @@ Use this structure as a starting point and adapt it to the target:
 ## Optional next phase
 ```
 
-Keep removed or reversed high-impact judgments in `Revisions to earlier judgments` with a short reason. Delete trivial abandoned notes rather than turning the review into an archaeological log.
+During the initial review, keep removed or reversed high-impact judgments in `Revisions to earlier judgments` with a short reason. Delete trivial abandoned notes rather than turning the review into an archaeological log.
+
+At finalization, date and preserve the reviewed state/ref, scope and exclusions, findings and evidence, assessment statuses, scores, and overall assessment as the baseline. Later implementation progress, confirmations, contradictions, and factual corrections belong in dated additions linked to the original finding or angle. Keep the baseline readable and unchanged; record fresh assessments only in the separately approved re-review addendum.
 
 ## Recommendation and implementation ledger
 
@@ -162,7 +176,7 @@ When the user opts into implementation, add a ledger to the live review:
 | Unit | Recommendation | Prerequisites | Risk | Owner/task | State | Commits | Validation | Integration result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
-Use states such as `planned`, `active`, `reviewing`, `merged`, `blocked`, and `deferred`. Update a recommendation's evidence and score only after reviewing the integrated destination state, not merely after a worker reports completion.
+Use states such as `planned`, `active`, `reviewing`, `merged`, `blocked`, and `deferred`. Record progress in this ledger and append dated evidence linked to the relevant finding IDs. Distinguish worker-reported results from evidence verified in the integrated destination state. Implementation updates must not overwrite baseline findings, assessment statuses, or scores, or assign revised scores; those belong to the separately approved re-review.
 
 ## Opt-in re-review addendum
 
@@ -176,8 +190,8 @@ Add this only when the user separately opts into the re-review phase:
 - Integrated change set:
 - Scope or evidence differences:
 
-| Angle | Before | After | Change justified by |
-| --- | ---: | ---: | --- |
+| Angle | Baseline status | Baseline score | Re-review status | Re-review score | Evidence and comparability |
+| --- | --- | ---: | --- | ---: | --- |
 
 ### Recommendation outcomes
 
@@ -188,4 +202,4 @@ Add this only when the user separately opts into the re-review phase:
 ### Re-review conclusion
 ```
 
-Do not overwrite the baseline scores. A re-review is an evidence comparison, not a completion ceremony; unchanged or lower scores are valid outcomes.
+Do not overwrite baseline findings, statuses, or scores. If either assessment is unscored or the scopes are not comparable, explain the limitation rather than claiming a numeric improvement. Newly available evidence can justify a first score without demonstrating that the code improved. A re-review is an evidence comparison, not a completion ceremony; unchanged or lower scores are valid outcomes.

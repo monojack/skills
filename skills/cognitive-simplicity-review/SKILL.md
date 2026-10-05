@@ -45,9 +45,9 @@ Record material model or effort downgrades when the platform cannot honor the re
 
 ## Establish scope and authority
 
-1. Resolve the exact target, reviewed ref or working tree, exclusions, requested depth, output location, and whether the system is pre-release.
+1. Resolve the exact target, reviewed ref or working tree, exclusions, requested depth, output location, and whether the system is pre-release. When the user supplies no narrower scope, use the current repository as the target and discover its meaningful review scopes from the code. Do not require the user to enumerate subsystems or choose reader tasks before starting. Infer the repository from the current workspace or conversation; ask for a target only if it remains ambiguous.
 2. Read every applicable repository instruction file before judging or editing anything. Preserve unrelated and user-owned changes.
-3. Keep the review inside the requested scope. Inspect adjacent code only when needed to understand an inbound or outbound boundary, and label it as context rather than silently expanding the review.
+3. Keep the review inside the user's explicit scope or the repository-wide target established above. Inspect code outside that target only when needed to understand an inbound or outbound boundary, and label it as context rather than silently expanding the review.
 4. Treat current source, executable tests, schemas, generated contracts, runtime composition, and observed behavior as primary evidence. Use documentation, plans, spikes, and ADRs to understand reasoning and intended boundaries, but do not infer current truth from prose alone. Respect any authority explicitly assigned by repository instructions or the user.
 5. Treat compatibility, versioning, hardening, and guardrail concerns according to the user's context. Inspect them only to establish a cognitive burden or a guarantee a proposed simplification must preserve; their absence or imperfection alone is not a finding.
 
@@ -57,7 +57,7 @@ Read [review-rubric.md](references/review-rubric.md) completely before creating 
 
 Create the review document early, after the first orientation pass. Use the user's requested location; otherwise follow an existing repository convention, or use a scoped `.review/` directory when no convention exists.
 
-Write findings while investigating. Mark uncertain items as hypotheses. As evidence changes, amend, merge, downgrade, or delete earlier findings instead of preserving a stale conclusion for appearances. Keep an explicit revision note when a materially important judgment changes.
+During the initial review, write findings while investigating. Mark uncertain items as hypotheses. As evidence changes, amend, merge, downgrade, or delete earlier findings instead of preserving a stale conclusion for appearances. Keep an explicit revision note when a materially important judgment changes. Once the review is finalized, preserve its baseline and append later evidence as described in the rubric.
 
 Never hard-wrap prose merely to satisfy a column width. Preserve deliberate paragraph boundaries and follow any stricter repository Markdown convention.
 
@@ -67,7 +67,9 @@ Never hard-wrap prose merely to satisfy a column width. Preserve deliberate para
 
 Inventory the target's entry points, public contracts, runtime composition, important services, domain concepts, persistence, state machines, external integrations, tests, and generated artifacts. Identify the likely "start here" path for a new developer.
 
-Trace representative happy, failure, cancellation, and cleanup paths to establish what a reader must follow and where ownership becomes difficult to reconstruct. Prefer concrete call chains and state transitions over architecture labels. This is not an exhaustive search for failing cases.
+Use this inventory to build a scope map covering all meaningful areas within the target: features, packages or services, shared infrastructure, and behavior spanning their boundaries. Discover scopes from actual responsibilities and execution paths rather than assuming directory names define them. Update the map as new areas emerge, and track the evidence examined and remaining gaps for each scope.
+
+Derive representative reader tasks from the discovered scopes and their interactions. Use them to investigate each area, without treating the first few tasks as the limit of the review. Trace representative happy, failure, cancellation, and cleanup paths to establish what a reader must follow and where ownership becomes difficult to reconstruct. Prefer concrete call chains and state transitions over architecture labels. This is not an exhaustive search for failing cases.
 
 ### 2. Review by mental-model cost
 
@@ -125,22 +127,24 @@ Separate safe pruning and boundary clarification from high-risk state-machine, p
 
 ## Score the result
 
-Score every investigated angle from 1 to 10 using the rubric anchors. Include evidence, confidence, and a realistic target where useful. Do not force a target of 10; a complex system can be excellent while retaining explicit essential complexity.
+Record an assessment for every review angle using the rubric's statuses. Assign a score from 1 to 10 only when the angle applies and the evidence supports a defensible judgment, using the rubric anchors. Otherwise use the distinct `not assessed`, `insufficient evidence`, or `not applicable` status with a reason. Include evidence, confidence, and a realistic target where useful. Do not force a target of 10; a complex system can be excellent while retaining explicit essential complexity.
 
 Scores describe how understandable the code is, not how correct, secure, fast, or feature-complete it is. Bugs, missing coverage, and absent hardening do not lower a score without independent evidence of a cognitive burden.
 
-Include an overall score only after the per-angle scores. Explain weighting rather than hiding it in an arithmetic average. Distinguish measured static complexity from the review's human-maintainability scores.
+Include an overall score only after the per-angle assessments and only when material evidence gaps do not prevent a defensible overall judgment. Explain weighting and coverage rather than hiding them in an arithmetic average. Distinguish measured static complexity from the review's human-maintainability scores.
 
 ## Complete the review before implementation
+
+At finalization, preserve the reviewed state, scope, findings, supporting evidence, per-angle assessments, and overall assessment as the baseline. Implementation adds progress and evidence without overwriting that baseline or assigning revised scores. Fresh scores belong in the separately approved re-review comparison.
 
 Finish with:
 
 - the live review path;
-- scope and exclusions;
+- scope coverage, exclusions, and any unreviewed areas with reasons; do not claim repository-wide completion while discovered scopes remain unreviewed;
 - the current mental model in plain language;
 - strongest qualities worth preserving;
 - findings and prioritized recommendations;
-- per-angle scores and overall assessment;
+- per-angle scores or unscored statuses and overall assessment;
 - validation and evidence gaps;
 - the implementation dependency graph and major risk boundaries, without starting implementation.
 
@@ -163,39 +167,9 @@ Ask the user which option they want and which recommendations, if any, should be
 
 ## Implement only after explicit opt-in
 
-When the user opts in, freeze the selected recommendation set and create a dependency graph before editing or dispatching work.
+After the user explicitly opts into implementation, read [implementation-workflow.md](references/implementation-workflow.md) completely before editing, creating implementation branches or worktrees, or dispatching work. Follow it for both implementation in the current task and orchestrated implementation. It contains the requirements for selected scope, dependencies, Git strategy, worker assignments, review, integration, monitoring, and completion reporting.
 
-Before creating implementation branches or worktrees or dispatching orchestrated work, state any repository-mandated Git constraints and ask the user whether they prefer a specific branch organization and integration strategy. Cover both how units should be branched, such as one branch per unit or stacked branches, and how approved work should land, such as rebase plus fast-forward-only, fast-forward-only, cherry-pick, squash, or merge commits. Recommend a practical default, record the answer as a phase-level constraint, and carry it into monitoring instructions. If the user already stated a preference in the current conversation, confirm and record it instead of asking again.
-
-The coordinating agent owns this skill's phase controls, frozen recommendation set, dependency graph, live-review updates, independent evaluation, correction loop, integration, user communication, and transition to re-review.
-
-Do not instruct a delegated implementation worker to load or use this full skill merely because its unit originated from the review. Give the worker a self-contained prompt that distills the human-maintainability objective, task-local evidence, required after-state, protected guarantees, exclusions, prerequisites, validation, and handoff format. The worker must read applicable repository instructions and may use narrower technical or implementation skills that independently fit its task. Ask a worker to use this skill only when its assigned task is itself an independent cognitive-simplicity review or re-review, not a bounded implementation unit.
-
-For each implementation unit:
-
-- Restate the human-maintainability objective, scope, current evidence, required after-state, essential guarantees, exclusions, prerequisites, validation, and handoff format.
-- Select the latest suitable platform model with at least `high` reasoning under the routing rule above.
-- Keep one writer per checkout or worktree. Use isolated tasks, conversations, or worktrees only when the platform supports them and the user authorizes orchestration.
-- Start a dependent unit only after its prerequisites are integrated and validated.
-- Prefer small, reviewable, bisectable changes. Do not introduce compatibility layers, parallel contracts, or speculative abstractions unless explicitly required.
-- Review the complete diff and validation evidence independently before integration. Never approve or integrate solely because the worker reports success.
-- When that review finds a substantive problem, send a focused correction request back to the same worker or isolated task. Include the concrete evidence, the guarantee at risk, and the required after-state; require an updated diff and proportional validation, then independently re-review the result. Repeat only while the correction loop is making progress. Do not integrate known defects or silently repair substantive worker mistakes in the coordinator checkout; report a blocker when the unit cannot reach an acceptable state.
-- Integrate in dependency order, preserve user-owned work, resolve conflicts against the intended after-state, and rerun proportional checks in the destination.
-- Apply the recorded Git strategy consistently. Surface any conflict with a mandatory repository policy before dispatching work. If the user explicitly has no preference and the repository is silent, keep destination history linear: rebase an approved worker branch onto the current destination, then integrate it with fast-forward-only. Use cherry-pick for selected atomic commits, or squash only when intermediate worker commits are not independently useful. Do not create merge commits unless the repository or user explicitly requests them. Never rewrite already-integrated history without explicit approval.
-- Notify the user periodically only for meaningful progress, integrations, newly started dependent work, blockers, or decisions requiring input.
-- Update the live review when implementation evidence confirms or contradicts a finding.
-
-### Monitor orchestrated work practically
-
-Use bounded task/thread waits during the initial handoff, even when scheduled monitoring is available. Confirm that each worker started from the intended state, read the applicable instructions, understood the assignment and protected guarantees, froze the correct scope, and chose a sound implementation direction. Inspect enough early progress to catch a mistaken plan before leaving the worker unattended, and intervene immediately when its direction would add accidental complexity, weaken quality, or conflict with the dependency graph.
-
-Once the handoff and direction are trustworthy, stop actively waiting when the platform supports scheduled work. Prefer a conversation-attached scheduled heartbeat or recurring follow-up for the remaining long-running orchestration. Choose a practical interval for the expected task duration, give the scheduled run enough state to resume coordination, and have it check task progress, review completed work, integrate approved units, and start newly unblocked dependencies. Scheduled monitoring does not broaden the user's authorization or relax the review and validation requirements above.
-
-When scheduled work is unavailable, continue with bounded task/thread waits. Also use a short bounded wait when completion is genuinely imminent and an immediate result is useful. Carry forward task cursors where supported and back off between unchanged checks; do not busy-poll.
-
-After all selected units are integrated, finish the implementation phase with the integrated commits, validation evidence, unresolved risks, deferred work, and any implementation evidence that changed the original review. Do not automatically begin the re-review.
-
-Explain the optional third phase in plain language: it independently tests whether the integrated code actually became easier to understand without losing quality, rather than merely checking that implementation tasks were completed. Describe the evidence it will revisit and ask whether the user wants to opt in.
+Implement only the selected recommendations and validate their intended after-state and protected guarantees. Implementation verification is part of this phase; a fresh scored re-review remains a separately approved phase.
 
 ## Re-review only after a separate opt-in
 
@@ -209,7 +183,7 @@ During re-review:
 - Compare equivalent measurements only when their tool, configuration, and scope are sufficiently consistent; explain any non-comparable evidence.
 - Classify each recommendation as effective, partially effective, ineffective, regressed, reverted, deferred, or no longer applicable, with code evidence.
 - Verify that correctness and the protected engineering qualities remain intact using proportional tests and direct inspection.
-- Amend the live review transparently. Preserve the original baseline, record material reversals, and distinguish remaining essential complexity from accidental complexity.
-- Recalculate every investigated angle and the overall assessment. Report unchanged or lower scores honestly when the integrated result does not justify improvement.
+- Append the re-review findings, outcomes, and assessments as a comparison with the original baseline. Preserve that baseline, record material reversals, and distinguish remaining essential complexity from accidental complexity.
+- Reassess every investigated angle and the overall assessment using the rubric's evidence statuses and scoring anchors. Report unchanged or lower scores honestly when the integrated result does not justify improvement; do not invent scores where evidence is insufficient.
 
 Finish with a concise before-and-after comparison, the strongest improvements, quality guarantees verified, remaining or newly introduced problems, residual risks, and any repository guidance worth adding to prevent regression. Further implementation still requires another explicit user opt-in.
