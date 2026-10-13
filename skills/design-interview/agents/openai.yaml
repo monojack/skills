@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Interview"
+  short_description: "Exhaustive interviews with project documentation"
+  default_prompt: "Use $design-interview to exhaustively question this plan, maintain decision records and a glossary as we go, and confirm our shared understanding before proceeding."
+policy:
+  allow_implicit_invocation: false

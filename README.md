@@ -11,6 +11,7 @@ Shared agent skills installable from GitHub with [`npx skills`](https://skills.s
 - `pair-with-claude`: collaborate with Claude in the shared project environment, run bounded evaluation loops over concrete candidates with task-adaptive model and effort selection, or delegate work to supervised scratch/worktree workers.
 - `pair-with-codex`: collaborate with Codex in the shared project environment, run bounded evaluation loops over concrete candidates with task-adaptive model and effort selection, or delegate work to supervised scratch/worktree workers.
 - `collaborate-across-projects`: broker a resumable, evidence-led conversation between agents rooted in separate projects, require explicit agreement on the shared boundary, and deliver or implement the jointly verified result.
+- `design-interview`: exhaustively question a plan until its decisions and dependencies are resolved and the user confirms a shared understanding, maintaining decision records and a domain glossary as agreements emerge.
 
 The former `gh-issue-pr-loop` and `gh-pr-loop` skills were consolidated into `gh-workflow-loop`. Use `gh-workflow-loop` for both issue-to-PR implementation and existing-PR review workflows.
 
